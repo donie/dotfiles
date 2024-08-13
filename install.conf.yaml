@@ -1,5 +1,6 @@
 - defaults:
     link:
+      create: true
       relink: true
 
 - clean: ['~']
@@ -11,33 +12,19 @@
     ~/.p10k.zsh: shell/p10k.zsh
     ~/.gallery-dl.conf: dotfiles-private/gallery-dl.conf
     ~/.gitconfig: shell/gitconfig
-    ~/_runtime/Brewfile:
-      create: true
-      path: dotfiles-private/Brewfile
+    ~/_runtime/Brewfile: dotfiles-private/Brewfile
     ~/.tmux.conf: tmux/tmux.conf
     ~/.vimrc: vim/vimrc
-    ~/.vim/autoload/plug.vim:
-      create: true
-      path: vim/plug.vim
+    ~/.vim/autoload/plug.vim: vim/plug.vim
     ~/.config/nvim: nvim/
     ~/.config/mpv:
       path: mpv/
       exclude: [ mpv/watch_later ]
-    ~/_runtime/bin/BBDown: 
-      create: true
-      path: bin/BBDown
-    ~/_runtime/bin/BBDown.config:
-      create: true
-      path: bin/BBDown.config
-    ~/_runtime/bin/code-shell:
-      create: true
-      path: bin/code-shell
-    ~/_runtime/bin/dall:
-      create: true
-      path: bin/dall
-    ~/_runtime/bin/nas:
-      create: true
-      path: bin/nas
+    ~/_runtime/bin/BBDown: bin/BBDown
+    ~/_runtime/bin/BBDown.config: bin/BBDown.config
+    ~/_runtime/bin/code-shell: bin/code-shell
+    ~/_runtime/bin/dall: bin/dall
+    ~/_runtime/bin/nas: bin/nas
     ~/Library/Application Support/Sublime Text/Packages/User:
       if: '[ `uname` = Darwin ]'
       create: true
@@ -54,3 +41,5 @@
       command: "[ -f ~/.vim/autoload/plug.vim ] || curl -fLo ~/.vim/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim"
     - description: Installing vim plugins
       command: "vim +PlugInstall +qa"
+      stdin: true
+      stdout: true
