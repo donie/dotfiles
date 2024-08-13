@@ -15,7 +15,7 @@
       create: true
       path: dotfiles-private/Brewfile
     ~/.tmux.conf: tmux/tmux.conf
-    ~/.vimrc: nvim/vimrc.vim
+    ~/.vimrc: vim/vimrc
     ~/.vim/autoload/plug.vim:
       create: true
       path: vim/plug.vim
