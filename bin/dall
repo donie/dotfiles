@@ -1,0 +1,47 @@
+#!/bin/bash
+
+# Prompt the user to input links
+echo "Enter the links you want to download. Press Ctrl+Enter when finished."
+
+# Initialize an empty array to store the links
+links=()
+
+# Loop to continuously prompt for input
+while true; do
+    # Read user input
+    read -e -p "> " link
+
+    # Check if the input is empty
+    if [ -z "$link" ]; then
+        # If input is empty, break out of the loop
+        break
+    fi
+
+    # Add the link to the array
+    links+=("$link")
+done
+
+# Check if any links were provided
+if [ ${#links[@]} -eq 0 ]; then
+    echo "No links provided. Exiting."
+    exit 1
+fi
+
+# Prompt the user to confirm before downloading
+echo "You entered the following links:"
+for ((i=0; i<${#links[@]}; i++)); do
+    echo "$(($i + 1)). ${links[$i]}"
+done
+read -p "Do you want to download these files? (y/n): " confirm
+
+# Check the user's response
+if [[ $confirm =~ ^[Yy]$ ]]; then
+    # Download each file using wget
+    for link in "${links[@]}"; do
+        wget "$link"
+    done
+    echo "Download complete."
+else
+    echo "Download cancelled."
+fi
+

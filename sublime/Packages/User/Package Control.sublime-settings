@@ -1,0 +1,34 @@
+{
+	"bootstrapped": true,
+	"in_process_packages":
+	[
+	],
+	"installed_packages":
+	[
+		"A File Icon",
+		"Alignment",
+		"ayu",
+		"CSS3",
+		"FileIcons",
+		"Git",
+		"LSP",
+		"LSP-json",
+		"LSP-pyright",
+		"Markdown Extended",
+		"NeoVintageous",
+		"orgmode",
+		"Package Control",
+		"PlainTasks",
+		"Predawn",
+		"Pylinter",
+		"Rust Enhanced",
+		"RustAutoComplete",
+		"SideBarEnhancements",
+		"Sublime Tutor",
+		"SublimeCodeIntel",
+		"SublimeLinter",
+		"Terraform",
+		"Theme - Adaptify",
+		"TOML",
+	],
+}

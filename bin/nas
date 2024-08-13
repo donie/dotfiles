@@ -1,0 +1,25 @@
+#!/bin/bash
+
+# Check if NAS base directory is passed as an argument
+if [ "$#" -ne 1 ]; then
+    echo "Usage: $0 nas_base_dir"
+    exit 1
+fi
+
+# Set the base directory on the PC to the script's current directory
+pc_base_dir="$(pwd)"
+
+# Use the first argument as the NAS base directory
+nas_base_dir="$1"
+
+# Automatically find and list all directories in the base directory on the PC
+directories=$(find "$pc_base_dir" -maxdepth 1 -mindepth 1 -type d -exec basename {} \;)
+
+# Loop through each directory to sync
+for dir in $directories; do
+    echo "Syncing $dir..."
+    rsync -avt --omit-dir-times --ignore-existing "$pc_base_dir/$dir/" "$nas_base_dir/$dir/"
+done
+
+echo "Sync completed."
+

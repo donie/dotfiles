@@ -1,0 +1,198 @@
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" General
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+if $shell =~ 'bin/fish'
+    set shell=/bin/bash
+endif
+set nocompatible            " don't bother vi
+let mapleader = ","
+filetype off
+syntax enable
+
+set anti
+set autoread                " auto read update of file
+set backspace=indent,eol,start
+if system('uname -s') == "Darwin\n"
+  " possibly mac
+  set clipboard=unnamed
+else
+  " linux
+  set clipboard=unnamedplus
+endif
+set cmdheight=1
+set cursorline
+set encoding=utf-8
+set equalalways
+set expandtab
+set ffs=unix,dos,mac        " set standard file type
+set fileencodings=utf-8,ucs-bom,gb18030,gbk,gb2312,cp936
+" set foldmethod=indent
+set guitablabel=%t
+set history=600             " set history size
+set hlsearch
+set incsearch               " do incremental searching
+set laststatus=2            " always show status bar
+set linespace=2
+set matchpairs=(:),{:},[:],<:>
+if has('mouse')
+    set mouse=a
+endif
+set nobackup                " set no backup
+set noerrorbells
+set nowb
+set noswapfile
+if has("persistent_undo")
+    set undodir=~/.vim/.undodir/
+    set undofile
+endif
+set number
+set numberwidth=4
+set nowrap
+set ruler                   " show the cursor position all the time
+set shiftwidth=4
+set shortmess=aoOtI
+" set showcmd               " display incomplete commands
+set smartcase
+" set spell
+set t_Co=256
+set tabstop=4
+set visualbell
+set whichwrap=b,s,<,>,[,]
+set wildignore+=*/tmp/*,*/venv/*,*/data/*,*/dist/*,*/log/*/,*/logs/*,*.o,*~,*.obj,*/\.git/*,*.pdf,*.zip,*.pyc,*.gz,*.bz,*.tar,*.jpg,*.png,*.gif,*.avi,*.wmv,*.ogg,*.mp3,*.mov
+set wildmenu
+set foldlevelstart=20
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" plugins
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+call plug#begin()
+
+" utilities
+Plug 'wincent/command-t'
+Plug 'mhinz/vim-startify'
+Plug 'mhinz/vim-rfc'
+Plug 'nathanaelkane/vim-indent-guides'
+Plug 'vim-airline/vim-airline'
+Plug 'vim-airline/vim-airline-themes'
+Plug 'mbbill/undotree'
+Plug 'ntpeters/vim-better-whitespace'
+Plug 'scrooloose/nerdtree'
+Plug 'mileszs/ack.vim'
+Plug 'tpope/vim-commentary'
+Plug 'ap/vim-buftabline'
+Plug 'ConradIrwin/vim-bracketed-paste'
+" Plug 'mkitt/tabline.vim'
+" Plug 'fholgado/minibufexpl.vim'
+
+" ruby
+Plug 'tpope/vim-rails'
+Plug 'tpope/vim-rake'
+Plug 'tpope/vim-bundler'
+Plug 'tpope/vim-endwise'
+
+" syntax
+Plug 'NLKNguyen/c-syntax.vim'
+Plug 'pboettch/vim-cmake-syntax'
+Plug 'ap/vim-css-color'
+Plug 'kchmck/vim-coffee-script'
+Plug 'pangloss/vim-javascript'
+Plug 'elzr/vim-json'
+Plug 'fatih/vim-go'
+Plug 'raichoo/haskell-vim'
+Plug 'tpope/vim-markdown'
+Plug 'hdima/python-syntax'
+Plug 'elixir-editors/vim-elixir'
+
+" colorschemes
+Plug 'altercation/vim-colors-solarized'
+Plug 'NLKNguyen/papercolor-theme'
+
+call plug#end()
+
+
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" interface
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+if has("gui_running") || has("gui_macvim")
+    set background=dark
+    silent! colorscheme PaperColor
+    " let g:colors_name=molokai
+    set lines=57 columns=180
+    set guifont=PragmataPro\ for\ Powerline:h15
+    " let g:NERDTreeWinPos = "right"
+    autocmd VimEnter * NERDTreeToggle|NERDTreeFocusToggle
+    set guioptions-=T " Removes top toolbar
+    set guioptions-=r " Removes right hand scroll bar
+    set go-=L " Removes left hand scroll bar
+    autocmd User Rails let b:surround_{char2nr('-')} = "<% \r %>" " displays <% %> correctly
+    set cpoptions+=$ " puts a $ marker for the end of words/lines in cw/c$ commands
+    if has("mac")
+        :cd ~/Documents/code/
+    endif
+else
+    set background=dark
+    silent! colorscheme PaperColor
+    " let g:rehash256 = 1
+    " set guifont = "PragmataPro":12
+    " set guifont=Monaco:h12
+endif
+
+
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" UDM
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" => Quickly edit/reload the vimrc file
+nmap <silent> <leader>ev :e ~/.vimrc<CR>
+nnoremap <leader><leader> <c-^>
+" nmap <silent> <leader>sv :so ~/.vimrc<CR>
+map <silent> <leader>V :source ~/.vimrc<CR>:filetype detect<CR>:exe ":echo 'vimrc reloaded'"<CR>
+" => Quickly save/load session
+map <F6> :mksession! ~/vim_session <cr> " Quick write session with F6
+map <F7> :source ~/vim_session <cr>     " And load session with F7
+" => Quickly moving in windows
+nmap <C-h> <C-w>h
+nmap <C-j> <C-w>j
+nmap <C-k> <C-w>k
+nmap <C-l> <C-w>l
+" => Spell checking
+" Pressing ,ss will toggle and untoggle spell checking
+map <leader>ss :setlocal spell!<cr>
+map <leader>sn ]s
+map <leader>sp [s
+map <leader>sa zg
+map <leader>s? z=
+" => quick reformat
+nnoremap <leader>fef :normal! gg=G``<CR>
+" => Miscellaneous
+cmap w!! w !sudo tee % >/dev/null
+
+
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" packages configuration
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" => airline
+" let g:airline#extensions#tabline#enabled = 1
+let g:airline_theme="papercolor"
+" => buftabline
+set hidden
+nnoremap <C-N> :bnext<CR>
+nnoremap <C-P> :bprev<CR>
+" => NERDTree
+nmap <leader>d :NERDTreeToggle<CR><CR>
+nmap <leader>f :NERDTreeFind<CR>
+" => better-emptyspace
+let g:better_whitespace_enabled=1
+let g:strip_whitespace_on_save=1
+" => Command-T
+let g:CommandTWildIgnore=&wildignore.",*/Code"
+" =>  indent_guides
+" let g:indent_guides_enable_on_vim_startup = 1
+" let g:indent_guides_auto_colors = 0
+" let g:indent_guides_color_change_percent = 50
+" autocmd VimEnter,Colorscheme * :hi IndentGuidesOdd  guibg=dark ctermbg=3
+" autocmd VimEnter,Colorscheme * :hi IndentGuidesEven guibg=darkgrey ctermbg=4
+

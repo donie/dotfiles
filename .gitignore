@@ -1,0 +1,11 @@
+# general
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# icon and thumbnails
+Icon
+._*
+
+# folders
+mpv/watch_later/*
