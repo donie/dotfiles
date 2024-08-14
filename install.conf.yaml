@@ -12,7 +12,7 @@
     ~/.p10k.zsh: shell/p10k.zsh
     ~/.gallery-dl.conf: dotfiles-private/gallery-dl.conf
     ~/.gitconfig: shell/gitconfig
-    ~/_runtime/Brewfile: dotfiles-private/Brewfile
+    ~/_runtime/Brewfile: dotfiles-private/brewfile
     ~/.tmux.conf: tmux/tmux.conf
     ~/.vimrc: vim/vimrc
     ~/.vim/autoload/plug.vim: vim/plug.vim
