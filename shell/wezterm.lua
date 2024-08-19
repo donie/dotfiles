@@ -5,8 +5,8 @@ local wezterm = require("wezterm")
 local config = wezterm.config_builder()
 
 config.font = wezterm.font_with_fallback({
-	"Berkeley Mono",
-	"FiraCode Nerd Font Mono",
+	{ family = "Berkeley Mono", weight = "Medium" },
+	{ family = "FiraCode Nerd Font Mono", weight = "Regular" },
 })
 config.font_size = 14.5
 config.initial_cols = 162
