@@ -147,6 +147,7 @@ alias ping='prettyping --nolegend'
 alias so='source'
 alias top='htop'
 alias vi='vim'
+alias sudo='sudo '
 
 alias brewlog='brew log --pretty=format:"%h, %aI, %an%n >>%s<<%n" --graph'
 alias cpwp="rsync -rv ~/Documents/blogout/draft/public/ ~/Documents/blogout/weblog/"
