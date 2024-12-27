@@ -6,7 +6,8 @@
 - clean: ['~']
 
 - link:
-    ~/.wezterm.lua: shell/wezterm.lua
+    # ~/.wezterm.lua: shell/wezterm.lua
+    ~/.config/ghostty/config: shell/ghostty.config
     ~/.zshrc: shell/zshrc
     ~/.zshenv: shell/zshenv
     ~/.p10k.zsh: shell/p10k.zsh
@@ -36,7 +37,7 @@
 
 - shell:
     - [git submodule update --init --recursive, Installing submodules]
-    - [chsh -s $(which zsh)] 
+    - [chsh -s $(which zsh)]
     - description: Installing vim-plug
       command: "[ -f ~/.vim/autoload/plug.vim ] || curl -fLo ~/.vim/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim"
     - description: Installing vim plugins

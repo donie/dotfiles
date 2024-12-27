@@ -16,7 +16,8 @@ config.initial_rows = 66
 -- config.color_scheme = "Tokyo Night (Gogh)"
 config.color_scheme = "Vs Code Dark+ (Gogh)"
 config.enable_tab_bar = false
-config.window_background_opacity = 0.975
+config.window_background_opacity = 0.96
+config.macos_window_background_blur = 20
 
 -- and finally, return the configuration to wezterm
 return config
