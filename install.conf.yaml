@@ -7,10 +7,11 @@
 
 - link:
     # ~/.wezterm.lua: shell/wezterm.lua
+    ~/.config/fish: shell/fish/
     ~/.config/ghostty/config: shell/ghostty.config
-    ~/.zshrc: shell/zshrc
-    ~/.zshenv: shell/zshenv
-    ~/.p10k.zsh: shell/p10k.zsh
+    ~/.zshrc: shell/zsh/zshrc
+    ~/.zshenv: shell/zsh/zshenv
+    ~/.p10k.zsh: shell/zsh/p10k.zsh
     ~/.gallery-dl.conf: dotfiles-private/gallery-dl.conf
     ~/.gitconfig: shell/gitconfig
     ~/_runtime/Brewfile: dotfiles-private/brewfile
@@ -37,7 +38,7 @@
 
 - shell:
     - [git submodule update --init --recursive, Installing submodules]
-    - [chsh -s $(which zsh)]
+    - [chsh -s $(which fish)]
     - description: Installing vim-plug
       command: "[ -f ~/.vim/autoload/plug.vim ] || curl -fLo ~/.vim/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim"
     - description: Installing vim plugins
