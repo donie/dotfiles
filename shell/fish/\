@@ -83,19 +83,20 @@ set -g message-command-style fg=colour150,bg=default
 set -g pane-border-style fg=colour238
 set -g pane-active-border-style fg=colour38,bg=default
 
-# set -g @dracula-plugins "time ram-usage ssh-session"
+set -g @dracula-plugins "time ram-usage ssh-session"
 
 
-set -g status-left-length 100
-set -g status-left-style none
-set -g status-right-length 180
-set -g status-right-style none
-set -g status-left '#[fg=colour231,bg=colour68]#U@#{hostname_short} #[fg=colour15,bg=colour114,nobold,nounderscore,noitalics]䷍䷍ #S '
-if-shell 'pmset -g ps | grep -q "InternalBattery"' {
-    set -g status-right '#{prefix_highlight} #{spotify_status} #{spotify_artist} #[fg=colour114]#{spotify_track} #[default]| %R %m-%d | #{battery_color_charge_bg}#{battery_icon} #{battery_percentage} #{battery_remain}'
-} {
-    set -g status-right '#{prefix_highlight} #{spotify_status} #{spotify_artist} #[fg=colour114]#{spotify_track} #[default]| %R %m-%d'
-}
+#set -g status-left-length 100
+#set -g status-left-style none
+#set -g status-right-length 180
+#set -g status-right-style none
+#set -g status-left '#[fg=colour231,bg=colour68]#U@#{hostname_short} #[fg=colour15,bg=colour114,nobold,nounderscore,noitalics]䷍䷍ #S '
+##set -g status-left '#[fg=colour15,bg=colour114,nobold,nounderscore,noitalics]䷍䷍ #S '
+#if-shell 'pmset -g ps | grep -q "InternalBattery"' {
+#    set -g status-right '#{prefix_highlight} #{spotify_status} #{spotify_artist} #[fg=colour114]#{spotify_track} #[default]| %R %m-%d | #{battery_color_charge_bg}#{battery_icon} #{battery_percentage} #{battery_remain}'
+#} {
+#    set -g status-right '#{prefix_highlight} #{spotify_status} #{spotify_artist} #[fg=colour114]#{spotify_track} #[default]| %R %m-%d'
+#}
 
 setw -g window-status-style dim,fg=colour121,bg=colour235
 setw -g window-status-activity-style none,fg=colour154,bg=colour235
@@ -125,6 +126,7 @@ set -g @plugin 'tmux-plugins/tmux-sessionist'
 set -g @plugin 'robhurring/tmux-spotify'
 set -g @plugin 'tmux-plugins/tmux-yank'
 set -g @plugin 'soyuka/tmux-current-pane-hostname'
+set -g @plugin 'dracula/tmux'
 
 # Plugin configurations
 set -g @open-S 'https://www.google.com/search?q='
