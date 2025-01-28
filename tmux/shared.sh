@@ -81,15 +81,30 @@ get_remote_info() {
     fi
 
     # Parse the SSH command
-    local last_arg=$(echo "$ssh_cmd" | awk '{print $NF}') # Get the last argument of the ssh command
     local user=""
     local host=""
-    if [[ "$last_arg" == *@* ]]; then
-        user=$(echo "$last_arg" | cut -d@ -f1)
-        host=$(echo "$last_arg" | cut -d@ -f2)
-    else
-        user=$(whoami) # Default to current user
-        host="$last_arg"
+    local port=""
+    local args=($ssh_cmd) # Split the command into an array
+    for ((i=0; i<${#args[@]}; i++)); do
+        case "${args[i]}" in
+            -p) # Handle custom port
+                port="${args[i+1]}"
+                ;;
+            *@*) # Handle user@host
+                user=$(echo "${args[i]}" | cut -d@ -f1)
+                host=$(echo "${args[i]}" | cut -d@ -f2)
+                ;;
+            *) # Handle host without user (e.g., ssh host)
+                if [[ -z "$host" && "${args[i]}" != -* ]]; then
+                    host="${args[i]}"
+                fi
+                ;;
+        esac
+    done
+
+    # Default to current user if no user was provided
+    if [ -z "$user" ]; then
+        user=$(whoami)
     fi
 
     case "$command" in
@@ -99,8 +114,11 @@ get_remote_info() {
         "hostname")
             echo "$host"
             ;;
+        "port")
+            echo "${port:-22}" # Default to port 22 if not specified
+            ;;
         *)
-            echo "$user@$host"
+            echo "$user@$host:${port:-22}"
             ;;
     esac
 }
