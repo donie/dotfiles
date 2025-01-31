@@ -70,33 +70,42 @@ find_ssh_process() {
 
 get_remote_info() {
     local command=$1
+    echo "DEBUG: get_remote_info called with $command" >> /tmp/tmux-debug.log
 
     # Get the pane PID
     local pane_pid=$(tmux display-message -p "#{pane_pid}")
+    echo "DEBUG: Pane PID: $pane_pid" >> /tmp/tmux-debug.log
 
     # Find the SSH process starting from the pane PID
     local ssh_cmd=$(find_ssh_process "$pane_pid")
     if [ -z "$ssh_cmd" ]; then
+        echo "DEBUG: No SSH process found in descendants" >> /tmp/tmux-debug.log
         return
     fi
+    echo "DEBUG: SSH Command: $ssh_cmd" >> /tmp/tmux-debug.log
 
-    # Parse the SSH command
+    # Parse the SSH command arguments
     local user=""
     local host=""
     local port=""
     local args=($ssh_cmd) # Split the command into an array
-    for ((i=0; i<${#args[@]}; i++)); do
+
+    for ((i=1; i<${#args[@]}; i++)); do
         case "${args[i]}" in
             -p) # Handle custom port
                 port="${args[i+1]}"
+                ((i++)) # Skip next argument (port number)
                 ;;
             *@*) # Handle user@host
                 user=$(echo "${args[i]}" | cut -d@ -f1)
                 host=$(echo "${args[i]}" | cut -d@ -f2)
                 ;;
-            *) # Handle host without user (e.g., ssh host)
-                if [[ -z "$host" && "${args[i]}" != -* ]]; then
-                    host="${args[i]}"
+            -*)
+                continue # Ignore other flags
+                ;;
+            *)
+                if [[ -z "$host" ]]; then
+                    host="${args[i]}" # First non-option argument is the hostname
                 fi
                 ;;
         esac
@@ -106,6 +115,8 @@ get_remote_info() {
     if [ -z "$user" ]; then
         user=$(whoami)
     fi
+
+    echo "DEBUG: Parsed User: $user, Host: $host, Port: ${port:-22}" >> /tmp/tmux-debug.log
 
     case "$command" in
         "whoami")

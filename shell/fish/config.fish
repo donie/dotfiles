@@ -66,10 +66,11 @@ alias top 'htop'
 alias vi 'vim'
 
 # abbreviation
+abbr mtr 'sudo mtr'
 abbr ncdu 'ncdu --color dark'
 abbr ping 'prettyping --nolegend'
-abbr mtr 'sudo mtr'
 abbr brewlog 'brew log --pretty=format:"%h, %aI, %an%n >>%s<<%n" --graph'
+abbr ytdlp 'yt-dlp -f "bestvideo[ext=mp4][vcodec^=avc1]+bestaudio[ext=m4a][acodec^=mp4a]/best[ext=mp4]"'
 abbr cpwp 'rsync -rv ~/Documents/blogout/draft/public/ ~/Documents/blogout/weblog/'
 abbr jkbuild 'jekyll build --source ~/Documents/blogsrc/ --destination ~/Documents/blogout/draft/public/'
 abbr jkwatch 'jekyll build --source ~/Documents/blogsrc/ --destination ~/Documents/blogout/draft/public/ --watch'
