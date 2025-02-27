@@ -34,7 +34,7 @@ local utils = require 'mp.utils'
 
 o = {
     disabled = false,
-    images = true,
+    images = false,
     videos = true,
     audio = true,
     additional_image_exts = "",
