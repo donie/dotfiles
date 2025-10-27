@@ -101,3 +101,8 @@ end
 ## set Windsurf
 set -gx PATH /Users/donie/.codeium/windsurf/bin $PATH
 
+
+# Added by LM Studio CLI (lms)
+set -gx PATH $PATH /Users/donie/.lmstudio/bin
+# End of LM Studio CLI section
+
