@@ -27,6 +27,7 @@
     ~/_runtime/bin/code-shell: bin/code-shell
     ~/_runtime/bin/dall: bin/dall
     ~/_runtime/bin/nas: bin/nas
+    ~/_runtime/bin/build-mpv: bin/build-mpv
     ~/Library/Application Support/Sublime Text/Packages/User:
       if: '[ `uname` = Darwin ]'
       create: true

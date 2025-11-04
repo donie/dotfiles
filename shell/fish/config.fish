@@ -98,8 +98,6 @@ if type -q uv
     uv generate-shell-completion fish | source
     uvx --generate-shell-completion fish | source
 end
-## set Windsurf
-set -gx PATH /Users/donie/.codeium/windsurf/bin $PATH
 
 
 # Added by LM Studio CLI (lms)
