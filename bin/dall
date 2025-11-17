@@ -1,23 +1,17 @@
 #!/bin/bash
 
 # Prompt the user to input links
-echo "Enter the links you want to download. Press Ctrl+Enter when finished."
+echo "Enter the links you want to download. Press Enter on an empty line when finished."
 
 # Initialize an empty array to store the links
 links=()
 
 # Loop to continuously prompt for input
 while true; do
-    # Read user input
     read -e -p "> " link
-
-    # Check if the input is empty
     if [ -z "$link" ]; then
-        # If input is empty, break out of the loop
         break
     fi
-
-    # Add the link to the array
     links+=("$link")
 done
 
@@ -27,21 +21,25 @@ if [ ${#links[@]} -eq 0 ]; then
     exit 1
 fi
 
-# Prompt the user to confirm before downloading
+# Show the links
 echo "You entered the following links:"
 for ((i=0; i<${#links[@]}; i++)); do
     echo "$(($i + 1)). ${links[$i]}"
 done
-read -p "Do you want to download these files? (y/n): " confirm
 
-# Check the user's response
-if [[ $confirm =~ ^[Yy]$ ]]; then
-    # Download each file using wget
-    for link in "${links[@]}"; do
-        wget "$link"
-    done
-    echo "Download complete."
-else
-    echo "Download cancelled."
-fi
-
+# Confirmation: Enter or y/Y proceeds; n/N cancels; anything else re-prompts
+while true; do
+    read -p "Press Enter to download, or type y to confirm, n to cancel: " confirm
+    if [[ -z "$confirm" || "$confirm" =~ ^[Yy]$ ]]; then
+        for link in "${links[@]}"; do
+            wget "$link"
+        done
+        echo "Download complete."
+        break
+    elif [[ "$confirm" =~ ^[Nn]$ ]]; then
+        echo "Download cancelled."
+        break
+    else
+        echo "Please press Enter or type y to download, or n to cancel."
+    fi
+done

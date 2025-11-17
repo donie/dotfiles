@@ -79,6 +79,7 @@ abbr jkwatch 'jekyll build --source ~/Documents/blogsrc/ --destination ~/Documen
 # set PATH
 set -gx PATH /opt/homebrew/bin $PATH
 set -gx PATH /opt/homebrew/sbin $PATH
+set -gx PATH $HOME/go/bin $PATH
 set -gx PATH ~/.cargo/bin $PATH
 set -gx PATH ~/.local/bin $PATH
 set -gx PATH ~/_runtime/bin $PATH
