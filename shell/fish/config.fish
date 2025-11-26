@@ -47,7 +47,13 @@ alias ll="ls -lF $colorflag"
 # list all files colorized in long format, excluding . and ..
 alias la="ls -lAF $colorflag"
 # always use color output for `ls`
-alias ls="command ls $colorflag"
+if type -q gls
+    alias ls 'gls --color=auto'
+else if ls --color=auto &>/dev/null
+    alias ls 'ls --color=auto'
+else
+    alias ls 'ls -G'
+end
 
 # always enable colored `grep` output
 # note: `GREP_OPTIONS="--color=auto"` is deprecated, hence the alias usage.
@@ -56,14 +62,14 @@ alias fgrep='fgrep --color=auto'
 alias egrep='egrep --color=auto'
 
 # others
-alias cat 'bat'
 alias df 'df -h'
-alias find 'fd'
-alias gdl 'gallery-dl'
-alias help 'tldr'
-alias so 'source'
-alias top 'htop'
 alias vi 'vim'
+alias so 'source'
+type -q bat; and alias cat 'bat'
+type -q fd; and alias find 'fd'
+type -q tldr; and alias help 'tldr'
+type -q htop; and alias top 'htop'
+type -q gallery-dl; and alias gdl 'gallery-dl'
 
 # abbreviation
 abbr mtr 'sudo mtr'
@@ -77,31 +83,45 @@ abbr jkwatch 'jekyll build --source ~/Documents/blogsrc/ --destination ~/Documen
 
 
 # set PATH
-set -gx PATH /opt/homebrew/bin $PATH
-set -gx PATH /opt/homebrew/sbin $PATH
-set -gx PATH $HOME/go/bin $PATH
-set -gx PATH ~/.cargo/bin $PATH
-set -gx PATH ~/.local/bin $PATH
-set -gx PATH ~/_runtime/bin $PATH
+fish_add_path /opt/homebrew/bin
+fish_add_path /opt/homebrew/sbin
+fish_add_path $HOME/go/bin
+fish_add_path ~/_runtime/bin
+fish_add_path ~/.local/bin
+fish_add_path ~/.cargo/bin
+
 ## set *utils PATH
 if type -q brew
-    set HOMEBREW_PREFIX (brew --prefix)
+    if not set -q HOMEBREW_PREFIX
+        set -l HOMEBREW_PREFIX (brew --prefix)
+    end
     for d in $HOMEBREW_PREFIX/opt/*/libexec/gnubin
-        set -gx PATH $d $PATH
+        fish_add_path $d
     end
 end
+
+
 ## set rbnev
-if type -q rbenv
-    status --is-interactive; and rbenv init - | source
+function rb --wraps ruby --description 'lazy load rbenv'
+    rbenv init - fish | source
+    functions -e rb  # remove this wrapper
+    ruby $argv
 end
+
 ## set uv
-if type -q uv
-    uv generate-shell-completion fish | source
-    uvx --generate-shell-completion fish | source
-end
+# rerun this after uv update
+# uv generate-shell-completion fish > ~/.config/fish/completions/uv.fish
+# uvx --generate-shell-completion fish > ~/.config/fish/completions/uvx.fish
+#if type -q uv
+#    uv generate-shell-completion fish | source
+#    uvx --generate-shell-completion fish | source
+#end
 
 
 # Added by LM Studio CLI (lms)
 set -gx PATH $PATH /Users/donie/.lmstudio/bin
 # End of LM Studio CLI section
 
+
+# Added by Antigravity
+fish_add_path /Users/donie/.antigravity/antigravity/bin

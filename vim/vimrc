@@ -1,7 +1,7 @@
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " General
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-if $shell =~ 'bin/fish'
+if $SHELL=~ 'bin/fish'
     set shell=/bin/bash
 endif
 set nocompatible            " don't bother vi
@@ -29,6 +29,8 @@ set fileencodings=utf-8,ucs-bom,gb18030,gbk,gb2312,cp936
 " set foldmethod=indent
 set guitablabel=%t
 set history=600             " set history size
+set ignorecase              " Case insensitive search
+set smartcase               " Unless uppercase is used
 set hlsearch
 set incsearch               " do incremental searching
 set laststatus=2            " always show status bar
@@ -46,6 +48,7 @@ if has("persistent_undo")
     set undofile
 endif
 set number
+set relativenumber
 set numberwidth=4
 set nowrap
 set ruler                   " show the cursor position all the time
@@ -61,6 +64,13 @@ set whichwrap=b,s,<,>,[,]
 set wildignore+=*/tmp/*,*/venv/*,*/data/*,*/dist/*,*/log/*/,*/logs/*,*.o,*~,*.obj,*/\.git/*,*.pdf,*.zip,*.pyc,*.gz,*.bz,*.tar,*.jpg,*.png,*.gif,*.avi,*.wmv,*.ogg,*.mp3,*.mov
 set wildmenu
 set foldlevelstart=20
+set updatetime=300          " Faster completion (default is 4000ms)
+set timeoutlen=500          " Faster key sequence completion
+set lazyredraw              " Don't redraw while executing macros
+set splitbelow              " Open horizontal splits below
+set splitright              " Open vertical splits to the right
+
+
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " plugins
@@ -68,7 +78,9 @@ set foldlevelstart=20
 call plug#begin()
 
 " utilities
-Plug 'wincent/command-t'
+"Plug 'wincent/command-t'
+Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
+Plug 'junegunn/fzf.vim'
 Plug 'mhinz/vim-startify'
 Plug 'mhinz/vim-rfc'
 Plug 'nathanaelkane/vim-indent-guides'
@@ -91,17 +103,19 @@ Plug 'tpope/vim-bundler'
 Plug 'tpope/vim-endwise'
 
 " syntax
-Plug 'NLKNguyen/c-syntax.vim'
-Plug 'pboettch/vim-cmake-syntax'
-Plug 'ap/vim-css-color'
-Plug 'kchmck/vim-coffee-script'
-Plug 'pangloss/vim-javascript'
-Plug 'elzr/vim-json'
-Plug 'fatih/vim-go'
-Plug 'raichoo/haskell-vim'
-Plug 'tpope/vim-markdown'
-Plug 'hdima/python-syntax'
-Plug 'elixir-editors/vim-elixir'
+" One plugin to rule them all
+Plug 'sheerun/vim-polyglot'
+" Plug 'NLKNguyen/c-syntax.vim'
+" Plug 'pboettch/vim-cmake-syntax'
+" Plug 'ap/vim-css-color'
+" Plug 'kchmck/vim-coffee-script'
+" Plug 'pangloss/vim-javascript'
+" Plug 'elzr/vim-json'
+" Plug 'fatih/vim-go'
+" Plug 'raichoo/haskell-vim'
+" Plug 'tpope/vim-markdown'
+" Plug 'vim-python/python-syntax'
+" Plug 'elixir-editors/vim-elixir'
 
 " colorschemes
 Plug 'altercation/vim-colors-solarized'
@@ -181,18 +195,20 @@ let g:airline_theme="papercolor"
 set hidden
 nnoremap <C-N> :bnext<CR>
 nnoremap <C-P> :bprev<CR>
+" => fzf.vim
+nnoremap <silent> <Leader>f :Files<CR>
+nnoremap <silent> <C-f> :Rg<CR>
 " => NERDTree
-nmap <leader>d :NERDTreeToggle<CR><CR>
-nmap <leader>f :NERDTreeFind<CR>
+nmap <silent> <C-t> :NERDTreeToggle<CR><CR>
+" nmap <silent> <C-f> :NERDTreeFind<CR>
 " => better-emptyspace
 let g:better_whitespace_enabled=1
 let g:strip_whitespace_on_save=1
 " => Command-T
-let g:CommandTWildIgnore=&wildignore.",*/Code"
+" let g:CommandTWildIgnore=&wildignore.",*/Code"
 " =>  indent_guides
 " let g:indent_guides_enable_on_vim_startup = 1
 " let g:indent_guides_auto_colors = 0
 " let g:indent_guides_color_change_percent = 50
 " autocmd VimEnter,Colorscheme * :hi IndentGuidesOdd  guibg=dark ctermbg=3
 " autocmd VimEnter,Colorscheme * :hi IndentGuidesEven guibg=darkgrey ctermbg=4
-

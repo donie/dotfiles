@@ -45,4 +45,4 @@ SETUVAR fish_pager_color_selected_background:\x2d\x2dbackground\x3dE6B450
 SETUVAR fish_pager_color_selected_completion:\x1d
 SETUVAR fish_pager_color_selected_description:\x1d
 SETUVAR fish_pager_color_selected_prefix:\x1d
-SETUVAR fish_user_paths:/Users/donie/\x2elocal/bin\x1e/Applications/Ghostty\x2eapp/Contents/MacOS
+SETUVAR fish_user_paths:/Users/donie/_runtime/bin\x1e/Users/donie/go/bin\x1e/opt/homebrew/sbin\x1e/opt/homebrew/bin\x1e/Users/donie/\x2eantigravity/antigravity/bin\x1e/Users/donie/\x2elocal/bin\x1e/Applications/Ghostty\x2eapp/Contents/MacOS
