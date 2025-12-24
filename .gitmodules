@@ -4,3 +4,4 @@
 [submodule "dotfiles-private"]
 	path = dotfiles-private
 	url = git@github.com:donie/dotfiles-private.git
+	branch = main
