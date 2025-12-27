@@ -120,6 +120,7 @@ Plug 'sheerun/vim-polyglot'
 " colorschemes
 Plug 'altercation/vim-colors-solarized'
 Plug 'NLKNguyen/papercolor-theme'
+Plug 'catppuccin/vim', { 'as': 'catppuccin' }
 
 call plug#end()
 
@@ -131,7 +132,8 @@ call plug#end()
 
 if has("gui_running") || has("gui_macvim")
     set background=dark
-    silent! colorscheme PaperColor
+    silent! colorscheme catppuccin_mocha
+    " silent! colorscheme PaperColor
     " let g:colors_name=molokai
     set lines=57 columns=180
     set guifont=PragmataPro\ for\ Powerline:h15
@@ -147,7 +149,8 @@ if has("gui_running") || has("gui_macvim")
     endif
 else
     set background=dark
-    silent! colorscheme PaperColor
+    silent! colorscheme catppuccin_mocha
+    " silent! colorscheme PaperColor
     " let g:rehash256 = 1
     " set guifont = "PragmataPro":12
     " set guifont=Monaco:h12
@@ -190,7 +193,8 @@ cmap w!! w !sudo tee % >/dev/null
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " => airline
 " let g:airline#extensions#tabline#enabled = 1
-let g:airline_theme="papercolor"
+" let g:airline_theme="papercolor"
+let g:airline_theme="catppuccin_mocha"
 " => buftabline
 set hidden
 nnoremap <C-N> :bnext<CR>
