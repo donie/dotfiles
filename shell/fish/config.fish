@@ -102,11 +102,13 @@ end
 
 
 ## set rbnev
-function rb --wraps ruby --description 'lazy load rbenv'
-    rbenv init - fish | source
-    functions -e rb  # remove this wrapper
-    ruby $argv
-end
+status --is-interactive; and rbenv init - fish | source
+#function rb --wraps ruby --description 'lazy load rbenv'
+#    rbenv init - fish | source
+#    functions -e rb  # remove this wrapper
+#    ruby $argv
+#end
+
 
 ## set uv
 # rerun this after uv update

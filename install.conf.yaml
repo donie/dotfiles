@@ -8,6 +8,7 @@
 - link:
     # ~/.wezterm.lua: shell/wezterm.lua
     ~/.config/fish: shell/fish/
+    ~/.config/kitty: shell/kitty/
     ~/.config/ghostty/config: shell/ghostty.config
     ~/.zshrc: shell/zsh/zshrc
     ~/.zshenv: shell/zsh/zshenv
