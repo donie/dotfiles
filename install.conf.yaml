@@ -23,32 +23,32 @@
 
 - link:
     ~/.config/fish:
-      if: '[ `uname` = Darwin ]'
+      if: '[ "$(uname)" = "Darwin" ]'
       path: shell/fish/
     ~/.config/kitty:
-      if: '[ `uname` = Darwin ]'
+      if: '[ "$(uname)" = "Darwin" ]'
       path: shell/kitty/
     ~/.config/ghostty/config:
-      if: '[ `uname` = Darwin ]'
+      if: '[ "$(uname)" = "Darwin" ]'
       path: shell/ghostty.config
     ~/.zshrc:
-      if: '[ `uname` = Darwin ]'
+      if: '[ "$(uname)" = "Darwin" ]'
       path: shell/zsh/zshrc
     ~/.zshenv:
-      if: '[ `uname` = Darwin ]'
+      if: '[ "$(uname)" = "Darwin" ]'
       path: shell/zsh/zshenv
     ~/.p10k.zsh:
-      if: '[ `uname` = Darwin ]'
+      if: '[ "$(uname)" = "Darwin" ]'
       path: shell/zsh/p10k.zsh
     ~/_runtime/Brewfile:
-      if: '[ `uname` = Darwin ]'
+      if: '[ "$(uname)" = "Darwin" ]'
       path: dotfiles-private/brewfile
     ~/.config/mpv:
-      if: '[ `uname` = Darwin ]'
+      if: '[ "$(uname)" = "Darwin" ]'
       path: mpv/
       exclude: [ mpv/watch_later ]
     ~/Library/Application Support/Sublime Text/Packages/User:
-      if: '[ `uname` = Darwin ]'
+      if: '[ "$(uname)" = "Darwin" ]'
       create: true
       path: sublime/Packages/User/
 
@@ -58,16 +58,16 @@
 
 - link:
     ~/.bashrc:
-      if: '[[ `uname` = Linux ]]'
+      if: '[ "$(uname)" = "Linux" ]'
       path: shell/bash/bashrc
     ~/.bash_profile:
-      if: '[[ `uname` = Linux ]]'
+      if: '[ "$(uname)" = "Linux" ]'
       path: shell/bash/bash_profile
     ~/.bash_aliases:
-      if: '[[ `uname` = Linux ]]'
+      if: '[ "$(uname)" = "Linux" ]'
       path: shell/bash/bash_aliases
     ~/.tmux-linux.conf:
-      if: '[[ `uname` = Linux ]]'
+      if: '[ "$(uname)" = "Linux" ]'
       path: tmux/tmux-linux.conf
 
 # ============================================================================
@@ -76,22 +76,22 @@
 
 - link:
     ~/_runtime/bin/code-shell:
-      if: '[ `uname` = Darwin ]'
+      if: '[ "$(uname)" = "Darwin" ]'
       path: bin/code-shell
     ~/_runtime/bin/dall:
-      if: '[ `uname` = Darwin ]'
+      if: '[ "$(uname)" = "Darwin" ]'
       path: bin/dall
     ~/_runtime/bin/nas:
-      if: '[ `uname` = Darwin ]'
+      if: '[ "$(uname)" = "Darwin" ]'
       path: bin/nas
     ~/_runtime/bin/BBDown:
-      if: '[ `uname` = Darwin ]'
+      if: '[ "$(uname)" = "Darwin" ]'
       path: bin/BBDown
     ~/_runtime/bin/BBDown.config:
-      if: '[ `uname` = Darwin ]'
+      if: '[ "$(uname)" = "Darwin" ]'
       path: bin/BBDown.config
     ~/_runtime/bin/build-mpv:
-      if: '[ `uname` = Darwin ]'
+      if: '[ "$(uname)" = "Darwin" ]'
       path: bin/build-mpv
 
 # ============================================================================
@@ -100,13 +100,13 @@
 
 - link:
     ~/.local/bin/code-shell:
-      if: '[[ `uname` = Linux ]]'
+      if: '[ "$(uname)" = "Linux" ]'
       path: bin/code-shell
     ~/.local/bin/dall:
-      if: '[[ `uname` = Linux ]]'
+      if: '[ "$(uname)" = "Linux" ]'
       path: bin/dall
     ~/.local/bin/nas:
-      if: '[[ `uname` = Linux ]]'
+      if: '[ "$(uname)" = "Linux" ]'
       path: bin/nas
 
 - create:
@@ -114,9 +114,9 @@
       mode: 0700
     ~/.config:
     ~/_runtime/bin:
-      if: '[ `uname` = Darwin ]'
+      if: '[ "$(uname)" = "Darwin" ]'
     ~/.local/bin:
-      if: '[[ `uname` = Linux ]]'
+      if: '[ "$(uname)" = "Linux" ]'
 
 # ============================================================================
 # Shell commands - Cross-platform
@@ -139,7 +139,7 @@
 
 - shell:
     - command: chsh -s $(which fish)
-      if: '[ `uname` = Darwin ]'
+      if: '[ "$(uname)" = "Darwin" ]'
       description: Setting fish as default shell (macOS)
 
 # ============================================================================
@@ -149,11 +149,11 @@
 - shell:
     # Detect distro and run appropriate installer
     - command: |
-        if [[ -f /etc/os-release ]]; then
-          source /etc/os-release
-          if [[ "$ID" == "debian" || "$ID" == "ubuntu" || "$ID_LIKE" == *"debian"* ]]; then
+        if [ -f /etc/os-release ]; then
+          . /etc/os-release
+          if [ "$ID" = "debian" ] || [ "$ID" = "ubuntu" ] || echo "$ID_LIKE" | grep -q "debian"; then
             bash shell/linux/install-debian.sh
-          elif [[ "$ID" == "arch" || "$ID_LIKE" == *"arch"* ]]; then
+          elif [ "$ID" = "arch" ] || echo "$ID_LIKE" | grep -q "arch"; then
             bash shell/linux/install-arch.sh
           else
             echo "Unsupported Linux distribution: $ID"
@@ -164,22 +164,25 @@
           echo "Cannot detect Linux distribution"
           exit 1
         fi
-      if: '[[ `uname` = Linux ]]'
+      if: '[ "$(uname)" = "Linux" ]'
       description: Installing Linux packages
       stdin: true
       stdout: true
 
     # Set bash as default shell on Linux
     - command: |
-        if [[ "$SHELL" != *"bash"* ]]; then
-          echo "Current shell: $SHELL"
-          echo "Changing default shell to bash..."
-          chsh -s $(which bash)
-          echo "Shell changed to bash. Please log out and log back in for changes to take effect."
-        else
-          echo "bash is already the default shell"
-        fi
-      if: '[[ `uname` = Linux ]]'
+        case "$SHELL" in
+          *bash*)
+            echo "bash is already the default shell"
+            ;;
+          *)
+            echo "Current shell: $SHELL"
+            echo "Changing default shell to bash..."
+            chsh -s $(which bash)
+            echo "Shell changed to bash. Please log out and log back in for changes to take effect."
+            ;;
+        esac
+      if: '[ "$(uname)" = "Linux" ]'
       description: Setting bash as default shell (Linux)
       stdin: true
       stdout: true
@@ -194,7 +197,7 @@
         else
           echo "Linux tmux config sourcing already present in ~/.tmux.conf"
         fi
-      if: '[[ `uname` = Linux ]]'
+      if: '[ "$(uname)" = "Linux" ]'
       description: Adding Linux tmux config sourcing
       stdin: true
       stdout: true
