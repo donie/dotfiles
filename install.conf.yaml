@@ -1,3 +1,6 @@
+# Base dotfiles configuration - cross-platform
+# OS-specific configs are in install-darwin.conf.yaml and install-linux.conf.yaml
+
 - defaults:
     link:
       create: true
@@ -6,7 +9,7 @@
 - clean: ['~']
 
 # ============================================================================
-# Cross-platform symlinks (work on both macOS and Linux)
+# Cross-platform Configurations
 # ============================================================================
 
 - link:
@@ -18,108 +21,16 @@
     ~/.config/nvim: nvim/
 
 # ============================================================================
-# macOS-only symlinks
+# Cross-platform Directory Creation
 # ============================================================================
-
-- link:
-    ~/.config/fish:
-      if: '[ "$(uname)" = "Darwin" ]'
-      path: shell/fish/
-    ~/.config/kitty:
-      if: '[ "$(uname)" = "Darwin" ]'
-      path: shell/kitty/
-    ~/.config/ghostty/config:
-      if: '[ "$(uname)" = "Darwin" ]'
-      path: shell/ghostty.config
-    ~/.zshrc:
-      if: '[ "$(uname)" = "Darwin" ]'
-      path: shell/zsh/zshrc
-    ~/.zshenv:
-      if: '[ "$(uname)" = "Darwin" ]'
-      path: shell/zsh/zshenv
-    ~/.p10k.zsh:
-      if: '[ "$(uname)" = "Darwin" ]'
-      path: shell/zsh/p10k.zsh
-    ~/_runtime/Brewfile:
-      if: '[ "$(uname)" = "Darwin" ]'
-      path: dotfiles-private/brewfile
-    ~/.config/mpv:
-      if: '[ "$(uname)" = "Darwin" ]'
-      path: mpv/
-      exclude: [ mpv/watch_later ]
-    ~/Library/Application Support/Sublime Text/Packages/User:
-      if: '[ "$(uname)" = "Darwin" ]'
-      create: true
-      path: sublime/Packages/User/
-
-# ============================================================================
-# Linux-only symlinks
-# ============================================================================
-
-- link:
-    ~/.bashrc:
-      if: '[ "$(uname)" = "Linux" ]'
-      path: shell/bash/bashrc
-    ~/.bash_profile:
-      if: '[ "$(uname)" = "Linux" ]'
-      path: shell/bash/bash_profile
-    ~/.bash_aliases:
-      if: '[ "$(uname)" = "Linux" ]'
-      path: shell/bash/bash_aliases
-    ~/.tmux-linux.conf:
-      if: '[ "$(uname)" = "Linux" ]'
-      path: tmux/tmux-linux.conf
-
-# ============================================================================
-# macOS bin scripts
-# ============================================================================
-
-- link:
-    ~/_runtime/bin/code-shell:
-      if: '[ "$(uname)" = "Darwin" ]'
-      path: bin/code-shell
-    ~/_runtime/bin/dall:
-      if: '[ "$(uname)" = "Darwin" ]'
-      path: bin/dall
-    ~/_runtime/bin/nas:
-      if: '[ "$(uname)" = "Darwin" ]'
-      path: bin/nas
-    ~/_runtime/bin/BBDown:
-      if: '[ "$(uname)" = "Darwin" ]'
-      path: bin/BBDown
-    ~/_runtime/bin/BBDown.config:
-      if: '[ "$(uname)" = "Darwin" ]'
-      path: bin/BBDown.config
-    ~/_runtime/bin/build-mpv:
-      if: '[ "$(uname)" = "Darwin" ]'
-      path: bin/build-mpv
-
-# ============================================================================
-# Linux bin scripts (using ~/.local/bin - standard Linux location)
-# ============================================================================
-
-- link:
-    ~/.local/bin/code-shell:
-      if: '[ "$(uname)" = "Linux" ]'
-      path: bin/code-shell
-    ~/.local/bin/dall:
-      if: '[ "$(uname)" = "Linux" ]'
-      path: bin/dall
-    ~/.local/bin/nas:
-      if: '[ "$(uname)" = "Linux" ]'
-      path: bin/nas
 
 - create:
     ~/.ssh:
       mode: 0700
     ~/.config:
-    ~/_runtime/bin:
-      if: '[ "$(uname)" = "Darwin" ]'
-    ~/.local/bin:
-      if: '[ "$(uname)" = "Linux" ]'
 
 # ============================================================================
-# Shell commands - Cross-platform
+# Cross-platform Shell Commands
 # ============================================================================
 
 - shell:
@@ -130,74 +41,5 @@
       stdout: true
     - description: Installing vim plugins
       command: "vim +PlugInstall +qa"
-      stdin: true
-      stdout: true
-
-# ============================================================================
-# Shell commands - macOS only
-# ============================================================================
-
-- shell:
-    - command: chsh -s $(which fish)
-      if: '[ "$(uname)" = "Darwin" ]'
-      description: Setting fish as default shell (macOS)
-
-# ============================================================================
-# Shell commands - Linux only
-# ============================================================================
-
-- shell:
-    # Detect distro and run appropriate installer
-    - command: |
-        if [ -f /etc/os-release ]; then
-          . /etc/os-release
-          if [ "$ID" = "debian" ] || [ "$ID" = "ubuntu" ] || echo "$ID_LIKE" | grep -q "debian"; then
-            bash shell/linux/install-debian.sh
-          elif [ "$ID" = "arch" ] || echo "$ID_LIKE" | grep -q "arch"; then
-            bash shell/linux/install-arch.sh
-          else
-            echo "Unsupported Linux distribution: $ID"
-            echo "Supported distributions: Debian, Ubuntu, Arch Linux"
-            exit 1
-          fi
-        else
-          echo "Cannot detect Linux distribution"
-          exit 1
-        fi
-      if: '[ "$(uname)" = "Linux" ]'
-      description: Installing Linux packages
-      stdin: true
-      stdout: true
-
-    # Set bash as default shell on Linux
-    - command: |
-        case "$SHELL" in
-          *bash*)
-            echo "bash is already the default shell"
-            ;;
-          *)
-            echo "Current shell: $SHELL"
-            echo "Changing default shell to bash..."
-            chsh -s $(which bash)
-            echo "Shell changed to bash. Please log out and log back in for changes to take effect."
-            ;;
-        esac
-      if: '[ "$(uname)" = "Linux" ]'
-      description: Setting bash as default shell (Linux)
-      stdin: true
-      stdout: true
-
-    # Source tmux-linux.conf from main tmux.conf on Linux
-    - command: |
-        if ! grep -q "source-file.*tmux-linux.conf" ~/.tmux.conf 2>/dev/null; then
-          echo "" >> ~/.tmux.conf
-          echo "# Linux-specific configuration" >> ~/.tmux.conf
-          echo "if-shell 'uname | grep -q Linux' 'source-file ~/.tmux-linux.conf'" >> ~/.tmux.conf
-          echo "Added Linux tmux config sourcing to ~/.tmux.conf"
-        else
-          echo "Linux tmux config sourcing already present in ~/.tmux.conf"
-        fi
-      if: '[ "$(uname)" = "Linux" ]'
-      description: Adding Linux tmux config sourcing
       stdin: true
       stdout: true

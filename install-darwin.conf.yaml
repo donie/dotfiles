@@ -1,0 +1,54 @@
+# macOS-specific dotfiles configuration
+# This file is only loaded on macOS (Darwin)
+
+# ============================================================================
+# macOS Shell Configurations
+# ============================================================================
+
+- link:
+    ~/.config/fish: shell/fish/
+    ~/.config/kitty: shell/kitty/
+    ~/.config/ghostty/config: shell/ghostty.config
+    ~/.zshrc: shell/zsh/zshrc
+    ~/.zshenv: shell/zsh/zshenv
+    ~/.p10k.zsh: shell/zsh/p10k.zsh
+
+# ============================================================================
+# macOS Application Configurations
+# ============================================================================
+
+- link:
+    ~/_runtime/Brewfile: dotfiles-private/brewfile
+    ~/.config/mpv:
+      path: mpv/
+      exclude: [ mpv/watch_later ]
+    ~/Library/Application Support/Sublime Text/Packages/User:
+      create: true
+      path: sublime/Packages/User/
+
+# ============================================================================
+# macOS Custom Scripts
+# ============================================================================
+
+- link:
+    ~/_runtime/bin/code-shell: bin/code-shell
+    ~/_runtime/bin/dall: bin/dall
+    ~/_runtime/bin/nas: bin/nas
+    ~/_runtime/bin/BBDown: bin/BBDown
+    ~/_runtime/bin/BBDown.config: bin/BBDown.config
+    ~/_runtime/bin/build-mpv: bin/build-mpv
+
+# ============================================================================
+# macOS Directory Creation
+# ============================================================================
+
+- create:
+    ~/_runtime/bin:
+
+# ============================================================================
+# macOS Shell Commands
+# ============================================================================
+
+- shell:
+    - command: chsh -s $(which fish)
+      description: Setting fish as default shell
