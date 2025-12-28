@@ -1,0 +1,10 @@
+# Tier 2: Development tools for Debian/Ubuntu
+# Python and Node.js development environment
+
+python3
+python3-pip
+python3-venv
+build-essential
+make
+cmake
+gh

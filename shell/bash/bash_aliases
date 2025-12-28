@@ -1,0 +1,128 @@
+# Bash aliases - sourced by bashrc
+
+# ============================================================================
+# ls aliases with color support
+# ============================================================================
+
+# Detect if GNU ls or BSD ls (some systems have GNU coreutils installed)
+if ls --color=auto &>/dev/null 2>&1; then
+    # GNU ls
+    alias ls='ls --color=auto'
+    alias ll='ls -alF --color=auto'
+    alias la='ls -A --color=auto'
+    alias l='ls -CF --color=auto'
+else
+    # BSD ls (fallback)
+    alias ls='ls -G'
+    alias ll='ls -alFG'
+    alias la='ls -AG'
+    alias l='ls -CFG'
+fi
+
+# ============================================================================
+# Tool replacements (if available)
+# ============================================================================
+
+# Use bat instead of cat if available
+if command -v bat &> /dev/null; then
+    alias cat='bat'
+elif command -v batcat &> /dev/null; then
+    # Debian/Ubuntu names it batcat to avoid conflict
+    alias cat='batcat'
+    alias bat='batcat'
+fi
+
+# Use fd instead of find if available
+if command -v fdfind &> /dev/null; then
+    # Debian/Ubuntu names it fdfind
+    alias fd='fdfind'
+    alias find='fdfind'
+elif command -v fd &> /dev/null; then
+    alias find='fd'
+fi
+
+# Better alternatives if available
+command -v htop &> /dev/null && alias top='htop'
+command -v ncdu &> /dev/null && alias ncdu='ncdu --color dark'
+
+# ============================================================================
+# Grep with color
+# ============================================================================
+
+alias grep='grep --color=auto'
+alias fgrep='fgrep --color=auto'
+alias egrep='egrep --color=auto'
+
+# ============================================================================
+# Common shortcuts
+# ============================================================================
+
+alias vi='nvim'
+alias vim='nvim'
+alias vimdiff='nvim -d'
+
+alias df='df -h'
+alias du='du -h'
+alias free='free -h'
+
+# Safety nets
+alias rm='rm -i'
+alias cp='cp -i'
+alias mv='mv -i'
+
+# Directory navigation
+alias ..='cd ..'
+alias ...='cd ../..'
+alias ....='cd ../../..'
+
+# ============================================================================
+# Git aliases
+# ============================================================================
+
+alias g='git'
+alias gs='git status'
+alias ga='git add'
+alias gc='git commit'
+alias gp='git push'
+alias gl='git pull'
+alias gd='git diff'
+alias gco='git checkout'
+alias gb='git branch'
+alias glog='git log --oneline --graph --decorate'
+
+# ============================================================================
+# Application-specific
+# ============================================================================
+
+# gallery-dl
+command -v gallery-dl &> /dev/null && alias gdl='gallery-dl'
+
+# yt-dlp
+if command -v yt-dlp &> /dev/null; then
+    alias ytdlp='yt-dlp -f "bestvideo[ext=mp4][vcodec^=avc1]+bestaudio[ext=m4a][acodec^=mp4a]/best[ext=mp4]"'
+fi
+
+# ============================================================================
+# System-specific
+# ============================================================================
+
+# Package manager shortcuts
+if command -v apt &> /dev/null; then
+    alias update='sudo apt update && sudo apt upgrade'
+    alias install='sudo apt install'
+    alias search='apt search'
+elif command -v pacman &> /dev/null; then
+    alias update='sudo pacman -Syu'
+    alias install='sudo pacman -S'
+    alias search='pacman -Ss'
+fi
+
+# ============================================================================
+# Utility functions as aliases
+# ============================================================================
+
+# Show current IP
+alias myip='curl -s ifconfig.me'
+
+# Reload bashrc
+alias reload='source ~/.bashrc'

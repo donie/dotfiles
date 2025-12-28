@@ -1,0 +1,189 @@
+# Bash configuration for Linux servers
+# Provides similar experience to macOS fish/zsh setup
+
+# If not running interactively, don't do anything
+[[ $- != *i* ]] && return
+
+# ============================================================================
+# Environment Variables
+# ============================================================================
+
+export EDITOR=nvim
+export VISUAL=nvim
+export LANG=en_US.UTF-8
+export LC_ALL=en_US.UTF-8
+export GPG_TTY=$(tty)
+
+# History configuration
+export HISTSIZE=10000
+export HISTFILESIZE=20000
+export HISTCONTROL=ignoreboth:erasedups
+shopt -s histappend
+
+# Better directory navigation
+shopt -s autocd        # cd by just typing directory name
+shopt -s cdspell       # autocorrect typos in path names
+shopt -s dirspell
+shopt -s globstar      # ** for recursive glob
+
+# ============================================================================
+# PATH Setup
+# ============================================================================
+
+# Add local bin directories to PATH (only if they exist)
+add_to_path() {
+    if [ -d "$1" ] && [[ ":$PATH:" != *":$1:"* ]]; then
+        export PATH="$1:$PATH"
+    fi
+}
+
+add_to_path "$HOME/.local/bin"
+add_to_path "$HOME/.cargo/bin"
+add_to_path "$HOME/_runtime/bin"
+add_to_path "$HOME/go/bin"
+
+# ============================================================================
+# Colors and Prompt
+# ============================================================================
+
+# Enable color support
+if [ -x /usr/bin/dircolors ]; then
+    test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
+fi
+
+# Git prompt - lightweight version
+parse_git_branch() {
+    git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/(\1)/'
+}
+
+git_prompt_info() {
+    local branch=$(parse_git_branch)
+    if [ -n "$branch" ]; then
+        local status=""
+        if [ -n "$(git status --porcelain 2>/dev/null)" ]; then
+            status="*"  # dirty
+        fi
+        echo " $branch$status"
+    fi
+}
+
+# Simple, clean prompt
+PS1='\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\[\033[33m\]$(git_prompt_info)\[\033[00m\]\$ '
+
+# ============================================================================
+# Aliases
+# ============================================================================
+
+# Source aliases from separate file for organization
+if [ -f ~/.bash_aliases ]; then
+    source ~/.bash_aliases
+fi
+
+# ============================================================================
+# Tool Integrations
+# ============================================================================
+
+# FZF configuration
+if command -v fzf &> /dev/null; then
+    export FZF_DEFAULT_OPTS='--height 40% --layout=reverse --border'
+
+    # Use ripgrep for fzf if available
+    if command -v rg &> /dev/null; then
+        export FZF_DEFAULT_COMMAND='rg --files --hidden --follow --no-ignore-vcs 2>/dev/null'
+        export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+    fi
+
+    # Source fzf key bindings and completion if available
+    [ -f /usr/share/doc/fzf/examples/key-bindings.bash ] && source /usr/share/doc/fzf/examples/key-bindings.bash
+    [ -f /usr/share/bash-completion/completions/fzf ] && source /usr/share/bash-completion/completions/fzf
+
+    # Arch Linux paths
+    [ -f /usr/share/fzf/key-bindings.bash ] && source /usr/share/fzf/key-bindings.bash
+    [ -f /usr/share/fzf/completion.bash ] && source /usr/share/fzf/completion.bash
+fi
+
+# pyenv initialization
+if command -v pyenv &> /dev/null; then
+    export PYENV_ROOT="$HOME/.pyenv"
+    add_to_path "$PYENV_ROOT/bin"
+    eval "$(pyenv init -)"
+fi
+
+# nvm initialization
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && source "$NVM_DIR/nvm.sh"
+[ -s "$NVM_DIR/bash_completion" ] && source "$NVM_DIR/bash_completion"
+
+# uv completion
+if command -v uv &> /dev/null; then
+    eval "$(uv generate-shell-completion bash 2>/dev/null)"
+    eval "$(uvx --generate-shell-completion bash 2>/dev/null)"
+fi
+
+# direnv hook
+if command -v direnv &> /dev/null; then
+    eval "$(direnv hook bash)"
+fi
+
+# ============================================================================
+# Functions
+# ============================================================================
+
+# Proxy toggle function (from zshrc)
+sgproxy() {
+    case "$1" in
+        on)
+            export https_proxy=http://127.0.0.1:8888
+            export http_proxy=http://127.0.0.1:8888
+            export all_proxy=socks5://127.0.0.1:8889
+            echo "Proxy enabled"
+            ;;
+        off)
+            unset https_proxy
+            unset http_proxy
+            unset all_proxy
+            echo "Proxy disabled"
+            ;;
+        *)
+            echo "Usage: sgproxy {on|off}"
+            ;;
+    esac
+}
+
+# FZF file opener (from zshrc)
+f() {
+    local out file key
+    IFS=$'\n' out=($(fzf-tmux --query="$1" --exit-0 --expect=ctrl-o,ctrl-e))
+    key=$(head -1 <<< "${out[@]}")
+    file=$(head -2 <<< "${out[@]}" | tail -1)
+    if [ -n "$file" ]; then
+        if [ "$key" = "ctrl-o" ]; then
+            xdg-open "$file" 2>/dev/null || echo "xdg-open not available"
+        else
+            ${EDITOR:-vim} "$file"
+        fi
+    fi
+}
+
+# Create directory and cd into it
+mkcd() {
+    mkdir -p "$1" && cd "$1"
+}
+
+# ============================================================================
+# Completion
+# ============================================================================
+
+# Enable programmable completion
+if [ -f /etc/bash_completion ]; then
+    source /etc/bash_completion
+elif [ -f /usr/share/bash-completion/bash_completion ]; then
+    source /usr/share/bash-completion/bash_completion
+fi
+
+# ============================================================================
+# Local Customizations
+# ============================================================================
+
+# Source local bashrc if it exists (for machine-specific config)
+[ -f ~/.bashrc.local ] && source ~/.bashrc.local

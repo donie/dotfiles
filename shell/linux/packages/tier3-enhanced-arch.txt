@@ -1,0 +1,5 @@
+# Tier 3: Enhanced/nice-to-have tools for Arch Linux
+# Quality of life improvements (installation failures are non-critical)
+
+ncdu
+httpie

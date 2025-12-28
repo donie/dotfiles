@@ -1,0 +1,8 @@
+# Bash profile - executed for login shells
+
+# Source bashrc if it exists
+if [ -f ~/.bashrc ]; then
+    source ~/.bashrc
+fi
+
+# Additional login shell specific settings can go here
