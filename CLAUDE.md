@@ -229,11 +229,34 @@ The installer will automatically:
    ```
 4. **Install tmux plugins**: Launch tmux, press `Ctrl+a` then `I` (capital i)
 
+### Optional: Root User Setup (Linux)
+
+By design, dotfiles are installed per-user. When you use `sudo -i` or `sudo su -`, you enter root's environment (`/root`) where your user configs are not available.
+
+**Best Practice**: Use `sudo <command>` for individual commands when possible. Your vim/git configs will still work.
+
+**If you need frequent interactive root shells**, install dotfiles for root separately:
+
+```bash
+# Become root
+sudo -i
+
+# Clone and install dotfiles for root
+git clone https://github.com/yourusername/dotfiles.git /root/dotfiles
+cd /root/dotfiles
+./install
+
+# Root now has the same bash config, aliases, and vim setup
+```
+
+**Alternative**: Use `sudo -s` to get a root shell while preserving your user environment (may not be available on all systems).
+
 ### Configuration Files (Linux)
 
 - `~/.bashrc` - Main bash configuration with git prompt and tool integrations
 - `~/.bash_aliases` - Aliases (cat→bat, vi→nvim, ll, git shortcuts, etc.)
 - `~/.bash_profile` - Login shell config
+- `~/.local/bin/` - Custom scripts (code-shell, dall, nas) - standard Linux user bin location
 - `~/.tmux.conf` - Tmux config (automatically sources Linux-specific overrides)
 - `~/.tmux-linux.conf` - Linux-specific tmux settings (clipboard handling)
 - `~/.vimrc` / `~/.config/nvim` - Vim/Neovim config (clipboard already OS-aware)
@@ -349,10 +372,12 @@ sgproxy() {
 
 **Vim Clipboard**: Already OS-aware in vimrc (uses `clipboard=unnamed` on macOS, `clipboard=unnamedplus` on Linux).
 
-**Portable Scripts**: These bin scripts work on both OSes:
+**Portable Scripts**: These bin scripts work on both OSes (symlinked to different locations):
 - `bin/nas` - rsync-based NAS sync
 - `bin/code-shell` - tmux session manager for VS Code
 - `bin/dall` - wget-based batch downloader
+- macOS location: `~/_runtime/bin/`
+- Linux location: `~/.local/bin/` (standard FHS user binary location)
 
 **macOS-Only Scripts**: These are NOT symlinked on Linux:
 - `bin/build-mpv` - macOS-specific MPV builder

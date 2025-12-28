@@ -71,19 +71,19 @@
       path: tmux/tmux-linux.conf
 
 # ============================================================================
-# Cross-platform bin scripts
+# macOS bin scripts
 # ============================================================================
 
 - link:
-    ~/_runtime/bin/code-shell: bin/code-shell
-    ~/_runtime/bin/dall: bin/dall
-    ~/_runtime/bin/nas: bin/nas
-
-# ============================================================================
-# macOS-only bin scripts
-# ============================================================================
-
-- link:
+    ~/_runtime/bin/code-shell:
+      if: '[ `uname` = Darwin ]'
+      path: bin/code-shell
+    ~/_runtime/bin/dall:
+      if: '[ `uname` = Darwin ]'
+      path: bin/dall
+    ~/_runtime/bin/nas:
+      if: '[ `uname` = Darwin ]'
+      path: bin/nas
     ~/_runtime/bin/BBDown:
       if: '[ `uname` = Darwin ]'
       path: bin/BBDown
@@ -94,11 +94,29 @@
       if: '[ `uname` = Darwin ]'
       path: bin/build-mpv
 
+# ============================================================================
+# Linux bin scripts (using ~/.local/bin - standard Linux location)
+# ============================================================================
+
+- link:
+    ~/.local/bin/code-shell:
+      if: '[[ `uname` = Linux ]]'
+      path: bin/code-shell
+    ~/.local/bin/dall:
+      if: '[[ `uname` = Linux ]]'
+      path: bin/dall
+    ~/.local/bin/nas:
+      if: '[[ `uname` = Linux ]]'
+      path: bin/nas
+
 - create:
     ~/.ssh:
       mode: 0700
     ~/.config:
     ~/_runtime/bin:
+      if: '[ `uname` = Darwin ]'
+    ~/.local/bin:
+      if: '[[ `uname` = Linux ]]'
 
 # ============================================================================
 # Shell commands - Cross-platform
