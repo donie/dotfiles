@@ -20,7 +20,10 @@ elif [ "$(uname)" = "Linux" ]; then
 fi
 
 # Run Dotbot with all applicable configs
+# We allow individual configs to fail so all configs are processed
 for config in "${CONFIGS[@]}"; do
     echo "Loading configuration: ${config}"
-    "${BASEDIR}/${DOTBOT_DIR}/${DOTBOT_BIN}" -d "${BASEDIR}" -c "${config}" "${@}"
+    "${BASEDIR}/${DOTBOT_DIR}/${DOTBOT_BIN}" -d "${BASEDIR}" -c "${config}" "${@}" || {
+        echo "Warning: Some tasks in ${config} failed, but continuing with remaining configs..."
+    }
 done
