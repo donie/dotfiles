@@ -1,0 +1,79 @@
+# Linux-specific dotfiles configuration
+# This file is only loaded on Linux systems
+
+# ============================================================================
+# Linux Shell Configurations
+# ============================================================================
+
+- link:
+    ~/.bashrc: shell/bash/bashrc
+    ~/.bash_profile: shell/bash/bash_profile
+    ~/.bash_aliases: shell/bash/bash_aliases
+    ~/.tmux-linux.conf: tmux/tmux-linux.conf
+
+# ============================================================================
+# Linux Custom Scripts (FHS standard location)
+# ============================================================================
+
+- link:
+    ~/.local/bin/code-shell: bin/code-shell
+    ~/.local/bin/dall: bin/dall
+    ~/.local/bin/nas: bin/nas
+
+# ============================================================================
+# Linux Directory Creation
+# ============================================================================
+
+- create:
+    ~/.local/bin:
+
+# ============================================================================
+# Linux Shell Commands
+# ============================================================================
+
+- shell:
+    # Detect distro and run appropriate installer
+    - command: |
+        if [ -f /etc/os-release ]; then
+          . /etc/os-release
+          if [ "$ID" = "debian" ] || [ "$ID" = "ubuntu" ] || echo "$ID_LIKE" | grep -q "debian"; then
+            bash shell/linux/install-debian.sh
+          elif [ "$ID" = "arch" ] || echo "$ID_LIKE" | grep -q "arch"; then
+            bash shell/linux/install-arch.sh
+          else
+            echo "Unsupported Linux distribution: $ID"
+            echo "Supported distributions: Debian, Ubuntu, Arch Linux"
+            exit 1
+          fi
+        else
+          echo "Cannot detect Linux distribution"
+          exit 1
+        fi
+      description: Installing Linux packages
+
+    # Set bash as default shell on Linux
+    - command: |
+        case "$SHELL" in
+          *bash*)
+            echo "bash is already the default shell"
+            ;;
+          *)
+            echo "Current shell: $SHELL"
+            echo "Changing default shell to bash..."
+            chsh -s $(which bash)
+            echo "Shell changed to bash. Please log out and log back in for changes to take effect."
+            ;;
+        esac
+      description: Setting bash as default shell
+
+    # Source tmux-linux.conf from main tmux.conf on Linux
+    - command: |
+        if ! grep -q "source-file.*tmux-linux.conf" ~/.tmux.conf 2>/dev/null; then
+          echo "" >> ~/.tmux.conf
+          echo "# Linux-specific configuration" >> ~/.tmux.conf
+          echo "if-shell 'uname | grep -q Linux' 'source-file ~/.tmux-linux.conf'" >> ~/.tmux.conf
+          echo "Added Linux tmux config sourcing to ~/.tmux.conf"
+        else
+          echo "Linux tmux config sourcing already present in ~/.tmux.conf"
+        fi
+      description: Adding Linux tmux config sourcing

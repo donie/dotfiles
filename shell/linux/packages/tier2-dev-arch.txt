@@ -1,0 +1,9 @@
+# Tier 2: Development tools for Arch Linux
+# Python and Node.js development environment
+
+python
+python-pip
+base-devel
+make
+cmake
+github-cli

@@ -1,0 +1,21 @@
+# Tier 1: Critical CLI tools for Debian/Ubuntu
+# Essential packages for basic terminal productivity
+
+git
+tmux
+neovim
+vim
+htop
+ripgrep
+fd-find
+fzf
+curl
+wget
+coreutils
+less
+bat
+findutils
+sed
+tar
+rsync
+gnupg

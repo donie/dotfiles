@@ -1,3 +1,6 @@
+# Base dotfiles configuration - cross-platform
+# OS-specific configs are in install-darwin.conf.yaml and install-linux.conf.yaml
+
 - defaults:
     link:
       create: true
@@ -5,45 +8,33 @@
 
 - clean: ['~']
 
+# ============================================================================
+# Cross-platform Configurations
+# ============================================================================
+
 - link:
-    # ~/.wezterm.lua: shell/wezterm.lua
-    ~/.config/fish: shell/fish/
-    ~/.config/kitty: shell/kitty/
-    ~/.config/ghostty/config: shell/ghostty.config
-    ~/.zshrc: shell/zsh/zshrc
-    ~/.zshenv: shell/zsh/zshenv
-    ~/.p10k.zsh: shell/zsh/p10k.zsh
     ~/.gallery-dl.conf: dotfiles-private/gallery-dl.conf
     ~/.gitconfig: shell/gitconfig
-    ~/_runtime/Brewfile: dotfiles-private/brewfile
     ~/.tmux.conf: tmux/tmux.conf
     ~/.vimrc: vim/vimrc
     ~/.vim/autoload/plug.vim: vim/plug.vim
     ~/.config/nvim: nvim/
-    ~/.config/mpv:
-      path: mpv/
-      exclude: [ mpv/watch_later ]
-    ~/_runtime/bin/BBDown: bin/BBDown
-    ~/_runtime/bin/BBDown.config: bin/BBDown.config
-    ~/_runtime/bin/code-shell: bin/code-shell
-    ~/_runtime/bin/dall: bin/dall
-    ~/_runtime/bin/nas: bin/nas
-    ~/_runtime/bin/build-mpv: bin/build-mpv
-    ~/Library/Application Support/Sublime Text/Packages/User:
-      if: '[ `uname` = Darwin ]'
-      create: true
-      path: sublime/Packages/User/
+
+# ============================================================================
+# Cross-platform Directory Creation
+# ============================================================================
 
 - create:
     ~/.ssh:
       mode: 0700
+    ~/.config:
+
+# ============================================================================
+# Cross-platform Shell Commands
+# ============================================================================
+# Note: git submodule update is handled by the install script itself
+# Vim plugin installation moved to OS-specific configs to avoid stdin issues
 
 - shell:
-    - [git submodule update --init --recursive, Installing submodules]
-    - [chsh -s $(which fish)]
     - description: Installing vim-plug
       command: "[ -f ~/.vim/autoload/plug.vim ] || curl -fLo ~/.vim/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim"
-    - description: Installing vim plugins
-      command: "vim +PlugInstall +qa"
-      stdin: true
-      stdout: true
