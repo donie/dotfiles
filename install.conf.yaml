@@ -32,14 +32,9 @@
 # ============================================================================
 # Cross-platform Shell Commands
 # ============================================================================
+# Note: git submodule update is handled by the install script itself
+# Vim plugin installation moved to OS-specific configs to avoid stdin issues
 
 - shell:
-    - [git submodule update --init --recursive, Installing submodules]
     - description: Installing vim-plug
       command: "[ -f ~/.vim/autoload/plug.vim ] || curl -fLo ~/.vim/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim"
-      stdin: true
-      stdout: true
-    - description: Installing vim plugins
-      command: "vim +PlugInstall +qa"
-      stdin: true
-      stdout: true
