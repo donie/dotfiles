@@ -1,0 +1,24 @@
+# Dockerfile for testing dotfiles installation on Arch Linux
+FROM archlinux:latest
+
+# Update system and install minimal dependencies
+RUN pacman -Syu --noconfirm && \
+    pacman -S --noconfirm git sudo && \
+    pacman -Scc --noconfirm
+
+# Create a test user with sudo access
+RUN useradd -m -s /bin/bash testuser && \
+    echo "testuser ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+
+# Switch to test user
+USER testuser
+WORKDIR /home/testuser
+
+# Copy dotfiles into container
+COPY --chown=testuser:testuser . /home/testuser/dotfiles
+
+# Set the working directory to dotfiles
+WORKDIR /home/testuser/dotfiles
+
+# Default command: run the installer
+CMD ["./install"]

@@ -1,0 +1,7 @@
+# Ignore these files when building Docker images
+.git
+.gitignore
+.dockerignore
+*.md
+Dockerfile.*
+test-docker.sh

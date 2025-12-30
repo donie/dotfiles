@@ -1,0 +1,26 @@
+# Dockerfile for testing dotfiles installation on Debian/Ubuntu
+FROM ubuntu:24.04
+
+# Install minimal dependencies
+RUN apt-get update && apt-get install -y \
+    git \
+    sudo \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create a test user with sudo access (simulates real user environment)
+RUN useradd -m -s /bin/bash testuser && \
+    echo "testuser ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+
+# Switch to test user
+USER testuser
+WORKDIR /home/testuser
+
+# Copy dotfiles into container
+COPY --chown=testuser:testuser . /home/testuser/dotfiles
+
+# Set the working directory to dotfiles
+WORKDIR /home/testuser/dotfiles
+
+# Default command: run the installer
+CMD ["./install"]
