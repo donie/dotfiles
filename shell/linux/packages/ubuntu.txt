@@ -1,16 +1,14 @@
-# Tier 1: Critical CLI tools for Debian/Ubuntu
 # Essential packages for basic terminal productivity
 
-git
+curl
+wget
 tmux
-neovim
-vim
 htop
+ncdu
+httpie
 ripgrep
 fd-find
 fzf
-curl
-wget
 coreutils
 less
 bat
@@ -19,3 +17,8 @@ sed
 tar
 rsync
 gnupg
+build-essential
+make
+cmake
+vim
+neovim

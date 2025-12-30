@@ -1,0 +1,23 @@
+# Essential packages for basic terminal productivity
+
+curl
+wget
+tmux
+htop
+ncdu
+httpie
+ripgrep
+fd-find
+fzf
+coreutils
+less
+bat
+findutils
+sed
+tar
+rsync
+gnupg
+build-essential
+make
+cmake
+vim

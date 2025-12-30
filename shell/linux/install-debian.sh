@@ -1,5 +1,5 @@
 #!/bin/bash
-# Debian/Ubuntu package installation script
+# Debian package installation script
 # Idempotent - safe to run multiple times
 
 set -e # Exit on error for critical sections
@@ -45,37 +45,18 @@ install_if_missing() {
   fi
 }
 
-# Tier 1: Critical packages
-log_info "Installing Tier 1 (Critical) packages..."
+# Install packges
+log_info "Installing packages..."
 while IFS= read -r package; do
   [[ -z "$package" || "$package" =~ ^# ]] && continue
   install_if_missing "$package" true
-done <"$PACKAGE_DIR/tier1-critical-debian.txt"
+done <"$PACKAGE_DIR/debian.txt"
 
-# Tier 2: Development tools (Python/Node only)
-log_info "Installing Tier 2 (Development) packages..."
-while IFS= read -r package; do
-  [[ -z "$package" || "$package" =~ ^# ]] && continue
-  install_if_missing "$package" false
-done <"$PACKAGE_DIR/tier2-dev-debian.txt"
-
-# Tier 3: Enhanced tools
-log_info "Installing Tier 3 (Enhanced) packages..."
-while IFS= read -r package; do
-  [[ -z "$package" || "$package" =~ ^# ]] && continue
-  install_if_missing "$package" false
-done <"$PACKAGE_DIR/tier3-enhanced-debian.txt"
+log_info "Building nvim for Debian"
+bash neovim-debian.sh
 
 # Version managers (special handling)
 install_version_managers() {
-  # pyenv installation
-  if ! command -v pyenv &>/dev/null; then
-    log_info "Installing pyenv..."
-    curl -s https://pyenv.run | bash || log_warn "pyenv installation failed"
-  else
-    log_info "pyenv already installed"
-  fi
-
   # nvm installation (use install script, not package manager)
   if [ ! -d "$HOME/.nvm" ]; then
     log_info "Installing nvm..."

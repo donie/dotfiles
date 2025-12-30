@@ -11,19 +11,19 @@ git -C "${DOTBOT_DIR}" submodule sync --quiet --recursive
 git submodule update --init --recursive "${DOTBOT_DIR}"
 
 # Determine which configs to load based on OS
-CONFIGS=("install.conf.yaml")  # Base config always loaded
+CONFIGS=("install.conf.yaml") # Base config always loaded
 
 if [ "$(uname)" = "Darwin" ]; then
-    CONFIGS+=("install-darwin.conf.yaml")
+  CONFIGS+=("install-darwin.conf.yaml")
 elif [ "$(uname)" = "Linux" ]; then
-    CONFIGS+=("install-linux.conf.yaml")
+  CONFIGS+=("install-linux.conf.yaml")
 fi
 
 # Run Dotbot with all applicable configs
 # We allow individual configs to fail so all configs are processed
 for config in "${CONFIGS[@]}"; do
-    echo "Loading configuration: ${config}"
-    "${BASEDIR}/${DOTBOT_DIR}/${DOTBOT_BIN}" -d "${BASEDIR}" -c "${config}" "${@}" || {
-        echo "Warning: Some tasks in ${config} failed, but continuing with remaining configs..."
-    }
+  echo "Loading configuration: ${config}"
+  "${BASEDIR}/${DOTBOT_DIR}/${DOTBOT_BIN}" -d "${BASEDIR}" -c "${config}" "${@}" || {
+    echo "Warning: Some tasks in ${config} failed, scroll up to check the logs..."
+  }
 done

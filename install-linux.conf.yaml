@@ -36,8 +36,10 @@
     - command: |
         if [ -f /etc/os-release ]; then
           . /etc/os-release
-          if [ "$ID" = "debian" ] || [ "$ID" = "ubuntu" ] || echo "$ID_LIKE" | grep -q "debian"; then
+          if [ "$ID" = "debian" ] ; then
             bash shell/linux/install-debian.sh
+          elif [ "$ID" = "ubuntu" ] || echo "$ID_LIKE" | grep -q "debian"; then
+            bash shell/linux/install-ubuntu.sh
           elif [ "$ID" = "arch" ] || echo "$ID_LIKE" | grep -q "arch"; then
             bash shell/linux/install-arch.sh
           else
