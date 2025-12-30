@@ -50,6 +50,8 @@
           exit 1
         fi
       description: Installing Linux packages
+      quite: true
+      stdout: true
 
     # Set bash as default shell on Linux
     - command: |
@@ -65,6 +67,8 @@
             ;;
         esac
       description: Setting bash as default shell
+      quite: true
+      stdout: true
 
     # Source tmux-linux.conf from main tmux.conf on Linux
     - command: |
@@ -77,3 +81,5 @@
           echo "Linux tmux config sourcing already present in ~/.tmux.conf"
         fi
       description: Adding Linux tmux config sourcing
+      quite: true
+      stdout: true
