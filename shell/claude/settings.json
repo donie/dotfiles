@@ -1,0 +1,13 @@
+{
+  "model": "opus",
+  "enabledPlugins": {
+    "context7@claude-plugins-official": true,
+    "superpowers@superpowers-marketplace": true,
+    "financial-analysis@financial-services-plugins": true,
+    "equity-research@financial-services-plugins": true
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "bash /Users/donie/.claude/statusline-command.sh"
+  }
+}

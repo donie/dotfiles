@@ -19,6 +19,9 @@
     ~/.tmux.conf: tmux/tmux.conf
     ~/.vimrc: vim/vimrc
     ~/.vim/autoload/plug.vim: vim/plug.vim
+    ~/.claude/settings.json: shell/claude/settings.json
+    ~/.claude/statusline-command.sh: shell/claude/statusline-command.sh
+    ~/.claude/statusline-spellcheck.py: shell/claude/statusline-spellcheck.py
     ~/.config/nvim: nvim/
     ~/.config/mpv:
       path: mpv/
