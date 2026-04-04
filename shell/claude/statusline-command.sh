@@ -97,7 +97,48 @@ if [ -n "$transcript" ] && [ -f "$transcript" ]; then
   fi
 fi
 
-line1="$(basename "$cwd") | $model | ${bar_part} | ${cost_part}${typo_part}"
+# ── Update check ─────────────────────────────────────────────────────────────
+
+version=$(echo "$input" | jq -r '.version // empty')
+update_part=""
+
+if [ -n "$version" ]; then
+  update_cache="/tmp/claude/statusline-update-cache.json"
+  update_max_age=3600  # 1 hour
+
+  needs_update_refresh=true
+  update_data=""
+
+  if [ -f "$update_cache" ]; then
+    ucache_mtime=$(stat -f %m "$update_cache" 2>/dev/null || stat -c %Y "$update_cache" 2>/dev/null)
+    now_u=$(date +%s)
+    ucache_age=$(( now_u - ucache_mtime ))
+    if [ "$ucache_age" -lt "$update_max_age" ]; then
+      needs_update_refresh=false
+      update_data=$(cat "$update_cache" 2>/dev/null)
+    fi
+  fi
+
+  if $needs_update_refresh; then
+    update_response=$(curl -s --max-time 5 \
+      "https://registry.npmjs.org/@anthropic-ai/claude-code/latest" 2>/dev/null)
+    if [ -n "$update_response" ] && echo "$update_response" | jq -e '.version' >/dev/null 2>&1; then
+      update_data="$update_response"
+      echo "$update_response" > "$update_cache"
+    elif [ -f "$update_cache" ]; then
+      update_data=$(cat "$update_cache" 2>/dev/null)
+    fi
+  fi
+
+  if [ -n "$update_data" ]; then
+    latest_version=$(echo "$update_data" | jq -r '.version // empty')
+    if [ -n "$latest_version" ] && [ "$latest_version" != "$version" ]; then
+      update_part=" ${yellow}↑ ${latest_version}${reset}"
+    fi
+  fi
+fi
+
+line1="$(basename "$cwd") | $model | ${bar_part} | ${cost_part}${typo_part}${update_part}"
 
 # ── Lines 2 & 3: API usage limits with colored progress bars ─────────────────
 

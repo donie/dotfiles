@@ -1,13 +1,14 @@
 {
-  "model": "opus",
+  "statusLine": {
+    "type": "command",
+    "command": "bash /Users/donie/.claude/statusline-command.sh"
+  },
   "enabledPlugins": {
     "context7@claude-plugins-official": true,
     "superpowers@superpowers-marketplace": true,
     "financial-analysis@financial-services-plugins": true,
-    "equity-research@financial-services-plugins": true
+    "equity-research@financial-services-plugins": true,
+    "swift-lsp@claude-plugins-official": true
   },
-  "statusLine": {
-    "type": "command",
-    "command": "bash /Users/donie/.claude/statusline-command.sh"
-  }
+  "voiceEnabled": true
 }
