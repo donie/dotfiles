@@ -7,7 +7,11 @@
 
 - link:
     # ~/.wezterm.lua: shell/wezterm.lua
-    ~/.config/fish: shell/fish/
+    ~/.config/fish/config.fish: shell/fish/config.fish
+    ~/.config/fish/conf.d: shell/fish/conf.d/
+    ~/.config/fish/functions: shell/fish/functions/
+    ~/.config/fish/completions: shell/fish/completions/
+    ~/.config/fish/fish_plugins: shell/fish/fish_plugins
     ~/.config/kitty: shell/kitty/
     ~/.config/ghostty/config: shell/ghostty.config
     ~/.zshrc: shell/zsh/zshrc

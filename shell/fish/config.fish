@@ -1,5 +1,6 @@
 set fish_greeting ''
-set -gx TERM xterm-256color
+# Do not override TERM here. Kitty/tmux set TERM for feature detection
+# (Kitty: xterm-kitty, tmux panes: tmux-256color).
 set -x LANG en_US.UTF-8
 set -x LC_ALL en_US.UTF-8
 

@@ -9,3 +9,6 @@ Icon
 
 # folders
 mpv/watch_later/*
+
+# fish universal variables are machine-local generated state
+shell/fish/fish_variables
