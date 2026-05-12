@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+set -e
+
+REPO_UV="https://raw.githubusercontent.com/mitsuhiko/agent-stuff/main/extensions/uv.ts"
+AGENTS_UV="$(cd "$(dirname "$0")/.." && pwd)/pi/extensions/uv.ts"
+
+echo "=== Syncing pi packages ==="
+pi update --extensions
+
+echo "=== Checking uv.ts for updates ==="
+TMP=$(mktemp)
+curl -fsSL "$REPO_UV" -o "$TMP"
+if ! diff -q "$TMP" "$AGENTS_UV" >/dev/null 2>&1; then
+    echo "  → uv.ts updated from upstream"
+    cp "$TMP" "$AGENTS_UV"
+    echo "  → Review changes with git diff and commit if desired"
+else
+    echo "  → uv.ts up to date"
+fi
+rm -f "$TMP"
