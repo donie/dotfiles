@@ -5,16 +5,16 @@ MANIFEST="$(cd "$(dirname "$0")/.." && pwd)/skills/manifest.json"
 
 echo "=== Installing full-repo sources ==="
 jq -r '.sources[]' "$MANIFEST" 2>/dev/null | while read pkg; do
-    npx skills add "$pkg" -g -y 2>/dev/null || true
+    npx skills add "$pkg" -g -y || true
 done
 
 echo "=== Installing selective skills ==="
 jq -r '.selective | to_entries[] | "\(.key) \(.value | join(","))"' "$MANIFEST" 2>/dev/null | while read repo skills; do
     IFS=',' read -ra SKILL_LIST <<< "$skills"
     for skill in "${SKILL_LIST[@]}"; do
-        npx skills add "$repo" --skill "$skill" -g -y 2>/dev/null || true
+        npx skills add "$repo" --skill "$skill" -g -y || true
     done
 done
 
 echo "=== Updating all skills ==="
-npx skills update -g -y
+npx skills update -g -y 2>/dev/null
