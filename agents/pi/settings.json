@@ -15,6 +15,7 @@
     "npm:pi-mono-clear",
     "npm:pi-mono-multi-edit",
     "npm:pi-mono-simplify",
+    "npm:pi-cache-graph",
     "npm:pi-web-access",
     "npm:pi-execution-time",
     "npm:pi-mermaid",
