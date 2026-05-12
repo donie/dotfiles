@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+set -e
+
+BASEDIR="$(cd "$(dirname "$0")/../.." && pwd)"
+
+echo "=== Syncing agent configs (dotbot) ==="
+cd "$BASEDIR"
+./install
+
+echo ""
+echo "=== Syncing pi extensions ==="
+"$BASEDIR/agents/bin/sync-pi"
+
+echo ""
+echo "=== Syncing skills ==="
+"$BASEDIR/agents/bin/sync-skills"
+
+echo ""
+echo "=== Done ==="
