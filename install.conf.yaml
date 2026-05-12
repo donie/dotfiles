@@ -23,9 +23,14 @@
     ~/.tmux.conf: tmux/tmux.conf
     ~/.vimrc: vim/vimrc
     ~/.vim/autoload/plug.vim: vim/plug.vim
-    ~/.claude/settings.json: shell/claude/settings.json
-    ~/.claude/statusline-command.sh: shell/claude/statusline-command.sh
-    ~/.claude/statusline-spellcheck.py: shell/claude/statusline-spellcheck.py
+    ~/.claude/settings.json: agents/claude/settings.json
+    ~/.claude/statusline-command.sh: agents/claude/statusline-command.sh
+    ~/.claude/statusline-spellcheck.py: agents/claude/statusline-spellcheck.py
+    ~/.codex/config.toml: agents/codex/config.toml
+    ~/.codex/AGENTS.md: agents/codex/AGENTS.md
+    ~/.pi/agent/settings.json: agents/pi/settings.json
+    ~/.pi/agent/keybindings.json: agents/pi/keybindings.json
+    ~/.pi/agent/extensions/uv.ts: agents/pi/extensions/uv.ts
     ~/.config/nvim: nvim/
     ~/.config/mpv:
       path: mpv/
