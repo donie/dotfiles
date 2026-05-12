@@ -2,11 +2,12 @@
   "lastChangelogVersion": "0.74.0",
   "defaultProvider": "firepass",
   "defaultModel": "accounts/fireworks/routers/kimi-k2p6-turbo",
+  "npmCommand": ["bun"],
   "packages": [
+    "npm:pi-mono-btw",
     "npm:@gravewhisper/pi-theme-monokai-classic",
     "npm:@sherif-fanous/pi-catppuccin",
     "npm:pi-markdown-preview",
-    "npm:pi-mono-btw",
     "npm:pi-mono-context",
     "npm:pi-handoff",
     "npm:pi-mono-loop",

@@ -4,7 +4,34 @@ set -e
 REPO_UV="https://raw.githubusercontent.com/mitsuhiko/agent-stuff/main/extensions/uv.ts"
 AGENTS_UV="$(cd "$(dirname "$0")/.." && pwd)/pi/extensions/uv.ts"
 
-echo "=== Syncing pi packages ==="
+echo "=== Validating pi package manager ==="
+# Ensure pi uses bun for extensions to avoid npm peer-dependency bloat.
+# Bun skips auto-installing peer deps, preventing the ~2GB duplication we
+# saw when npm v7+ installed pi-coding-agent/koffi for every extension.
+if ! command -v bun >/dev/null 2>&1; then
+    echo "ERROR: bun is not installed. pi is configured to use bun for extensions."
+    echo "       Install bun first: https://bun.sh"
+    exit 1
+fi
+
+SETTINGS_FILE="${HOME}/.pi/agent/settings.json"
+if [ -f "$SETTINGS_FILE" ]; then
+    if ! grep -q '"npmCommand".*"bun"' "$SETTINGS_FILE" 2>/dev/null; then
+        echo "WARNING: ~/.pi/agent/settings.json is missing npmCommand: [\"bun\"]"
+        echo "         Add it to avoid massive npm peer-dependency duplication."
+    fi
+fi
+
+# Safety net: if npm exists, ensure legacy-peer-deps is set so any direct
+# npm usage (including fallback) won't re-bloat everything.
+if command -v npm >/dev/null 2>&1; then
+    if [ "$(npm config get legacy-peer-deps 2>/dev/null)" != "true" ]; then
+        echo "=== Setting npm legacy-peer-deps=true (safety net) ==="
+        npm config set legacy-peer-deps true
+    fi
+fi
+
+echo "=== Syncing pi packages via bun ==="
 pi update --extensions
 
 echo "=== Checking uv.ts for updates ==="
