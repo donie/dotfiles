@@ -18,6 +18,7 @@
     "npm:pi-cache-graph",
     "npm:pi-web-access",
     "npm:pi-execution-time",
+    "npm:pi-agent-browser-native",
     "npm:pi-mermaid",
     "npm:pi-subagents",
     "npm:pi-thinking-steps"
