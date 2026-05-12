@@ -2,6 +2,7 @@
   "sources": [
     "vercel-labs/skills",
     "mitsuhiko/agent-stuff",
-    "slidevjs/slidev"
+    "slidevjs/slidev",
+    "obra/superpowers"
   ]
 }
