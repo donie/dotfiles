@@ -31,7 +31,8 @@ This repository is a **public** dotfiles managed by [dotbot](https://github.com/
 ├── install.conf.yaml       # Dotbot manifest
 ├── dotbot/                 # Dotbot submodule (GitHub: anishathalye/dotbot)
 ├── dotfiles-private/       # PRIVATE submodule — see warning below
-├── shell/                  # Shell configs (fish, zsh, git, kitty, ghostty, wezterm, claude)
+├── agents/                 # Coding agent configs (claude, codex, pi, skills)
+├── shell/                  # Shell configs (fish, zsh, git, kitty, ghostty, wezterm)
 ├── nvim/                   # Neovim configuration (Lua-based)
 ├── vim/                    # Vim configuration + vim-plug bootstrap
 ├── tmux/                   # tmux config
@@ -41,7 +42,8 @@ This repository is a **public** dotfiles managed by [dotbot](https://github.com/
 ```
 
 ### Symlink Targets (from `install.conf.yaml`)
-- `shell/*` → `~/.config/*`, `~/.zshrc`, `~/.gitconfig`, `~/.claude/*`
+- `agents/*` → `~/.claude/*`, `~/.codex/*`, `~/.pi/agent/*`
+- `shell/*` → `~/.config/*`, `~/.zshrc`, `~/.gitconfig`
 - `nvim/` → `~/.config/nvim`
 - `vim/vimrc` → `~/.vimrc`
 - `tmux/tmux.conf` → `~/.tmux.conf`
@@ -79,6 +81,21 @@ This repository is a **public** dotfiles managed by [dotbot](https://github.com/
 - Some `bin/` scripts or `shell/` configs may assume macOS paths or Homebrew. Test changes on macOS if possible, or gate with `if: '[ $(uname) = Darwin ]'` in dotbot config.
 
 ---
+
+## Agent Configurations
+
+All coding agent configurations are managed under `agents/`:
+
+| Agent | Directory | Sync Method |
+|-------|-----------|-------------|
+| Claude | `agents/claude/` | dotbot symlink |
+| Codex | `agents/codex/` | dotbot symlink |
+| pi | `agents/pi/` | dotbot + `pi update --extensions` |
+| Skills | `agents/skills/manifest.json` | `npx skills add/update` |
+
+Run `agents/bin/sync-agents` to update everything.
+Run `agents/bin/sync-pi` to update pi packages and fetch latest `uv.ts`.
+Run `agents/bin/sync-skills` to update all skills from the manifest.
 
 ## Common Tasks
 
