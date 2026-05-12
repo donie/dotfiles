@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+set -e
+
+MANIFEST="$(cd "$(dirname "$0")/.." && pwd)/skills/manifest.json"
+
+echo "=== Installing missing skills ==="
+jq -r '.sources[]' "$MANIFEST" 2>/dev/null | while read pkg; do
+    npx skills add "$pkg" -g -y 2>/dev/null || true
+done
+
+echo "=== Updating all skills ==="
+npx skills update -g -y
