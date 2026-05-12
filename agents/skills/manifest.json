@@ -1,8 +1,14 @@
 {
   "sources": [
     "vercel-labs/skills",
-    "mitsuhiko/agent-stuff",
     "slidevjs/slidev",
     "obra/superpowers"
-  ]
+  ],
+  "selective": {
+    "mitsuhiko/agent-stuff": [
+      "commit",
+      "mermaid",
+      "uv"
+    ]
+  }
 }
