@@ -89,7 +89,7 @@ All coding agent configurations are managed under `agents/`:
 | Agent | Directory | Sync Method |
 |-------|-----------|-------------|
 | Claude | `agents/claude/` | dotbot symlink |
-| Codex | `agents/codex/` | dotbot symlink |
+| Codex | `agents/codex/AGENTS.md` | dotbot symlink |
 | pi | `agents/pi/` | dotbot + `pi update --extensions` |
 | Skills | `agents/skills/manifest.json` | `npx skills add/update` |
 

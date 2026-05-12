@@ -26,7 +26,6 @@
     ~/.claude/settings.json: agents/claude/settings.json
     ~/.claude/statusline-command.sh: agents/claude/statusline-command.sh
     ~/.claude/statusline-spellcheck.py: agents/claude/statusline-spellcheck.py
-    ~/.codex/config.toml: agents/codex/config.toml
     ~/.codex/AGENTS.md: agents/codex/AGENTS.md
     ~/.pi/agent/settings.json: agents/pi/settings.json
     ~/.pi/agent/keybindings.json: agents/pi/keybindings.json
