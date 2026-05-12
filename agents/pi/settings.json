@@ -20,8 +20,7 @@
     "npm:pi-execution-time",
     "npm:pi-mermaid",
     "npm:pi-subagents",
-    "npm:pi-thinking-steps",
-    "npm:pi-tool-display"
+    "npm:pi-thinking-steps"
   ],
   "defaultThinkingLevel": "high",
   "theme": "monokai-classic",
