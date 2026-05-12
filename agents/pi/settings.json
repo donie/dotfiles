@@ -1,0 +1,29 @@
+{
+  "lastChangelogVersion": "0.74.0",
+  "defaultProvider": "firepass",
+  "defaultModel": "accounts/fireworks/routers/kimi-k2p6-turbo",
+  "packages": [
+    "npm:@gravewhisper/pi-theme-monokai-classic",
+    "npm:@sherif-fanous/pi-catppuccin",
+    "npm:pi-markdown-preview",
+    "npm:pi-generate-commit-message",
+    "npm:pi-mono-btw",
+    "npm:pi-mono-context",
+    "npm:pi-handoff",
+    "npm:pi-mono-loop",
+    "npm:@capyup/pi-goal",
+    "npm:pi-mono-ask-user-question",
+    "npm:pi-mono-clear",
+    "npm:pi-mono-multi-edit",
+    "npm:pi-mono-simplify",
+    "npm:pi-web-access",
+    "npm:pi-execution-time",
+    "npm:pi-mermaid",
+    "npm:pi-subagents",
+    "npm:pi-thinking-steps",
+    "npm:pi-tool-display"
+  ],
+  "defaultThinkingLevel": "high",
+  "theme": "monokai-classic",
+  "hideThinkingBlock": false
+}
