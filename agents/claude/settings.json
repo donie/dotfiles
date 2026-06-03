@@ -1,5 +1,4 @@
 {
-  "model": "claude-opus-4-7[1m]",
   "statusLine": {
     "type": "command",
     "command": "bash /Users/donie/.claude/statusline-command.sh"
