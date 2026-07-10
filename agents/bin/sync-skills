@@ -9,12 +9,26 @@ jq -r '.sources[]' "$MANIFEST" 2>/dev/null | while read pkg; do
 done
 
 echo "=== Installing selective skills ==="
-jq -r '.selective | to_entries[] | "\(.key) \(.value | join(","))"' "$MANIFEST" 2>/dev/null | while read repo skills; do
-    IFS=',' read -ra SKILL_LIST <<< "$skills"
-    for skill in "${SKILL_LIST[@]}"; do
-        npx skills add "$repo" --skill "$skill" -g -y < /dev/null || true
-    done
+jq -r '.selective | to_entries[] | "\(.key)\t\(.value | join(" "))"' "$MANIFEST" 2>/dev/null | while IFS=$'\t' read -r repo skills; do
+    # Pass all skills for a repo in one invocation: --skill accepts multiple
+    # names, so the repo is cloned/scanned once instead of once per skill.
+    npx skills add "$repo" --skill $skills -g -y < /dev/null || true
 done
 
 echo "=== Updating all skills ==="
 npx skills update -g -y 2>/dev/null
+
+# The skills CLI classifies Codex as a "universal" agent and installs only into
+# ~/.agents/skills, but Codex auto-discovers skills from $CODEX_HOME/skills
+# (~/.codex/skills). Bridge the two by symlinking each installed skill across,
+# mirroring what the CLI already does for Claude Code et al. Codex's own
+# .system/ skills live only under ~/.codex/skills and are left untouched.
+echo "=== Symlinking skills into Codex ==="
+AGENTS_SKILLS="$HOME/.agents/skills"
+CODEX_SKILLS="${CODEX_HOME:-$HOME/.codex}/skills"
+if [ -d "$AGENTS_SKILLS" ] && [ -d "$CODEX_SKILLS" ]; then
+    for dir in "$AGENTS_SKILLS"/*/; do
+        [ -d "$dir" ] || continue
+        ln -sfn "${dir%/}" "$CODEX_SKILLS/$(basename "$dir")"
+    done
+fi
