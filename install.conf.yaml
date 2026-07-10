@@ -26,6 +26,12 @@
     ~/.claude/settings.json: agents/claude/settings.json
     ~/.claude/statusline-command.sh: agents/claude/statusline-command.sh
     ~/.claude/statusline-spellcheck.py: agents/claude/statusline-spellcheck.py
+    # Bespoke, hand-authored skills (CLI-managed skills come from the manifest instead)
+    ~/.claude/skills/:
+      glob: true
+      path: agents/claude/skills/*
+      create: true
+      relink: true
     ~/.codex/AGENTS.md: agents/codex/AGENTS.md
     ~/.pi/agent/settings.json: agents/pi/settings.json
     ~/.pi/agent/keybindings.json: agents/pi/keybindings.json
