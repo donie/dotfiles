@@ -32,6 +32,7 @@
       path: agents/claude/skills/*
       create: true
       relink: true
+      relative: true
     ~/.codex/AGENTS.md: agents/codex/AGENTS.md
     ~/.pi/agent/settings.json: agents/pi/settings.json
     ~/.pi/agent/keybindings.json: agents/pi/keybindings.json
