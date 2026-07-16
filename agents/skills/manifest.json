@@ -1,6 +1,7 @@
 {
   "sources": [
-    "slidevjs/slidev"
+    "slidevjs/slidev",
+    "pbakaus/impeccable"
   ],
   "selective": {
     "mitsuhiko/agent-stuff": [
