@@ -195,3 +195,6 @@ export PATH="/Users/donie/.codeium/windsurf/bin:$PATH"
 export PATH="$PATH:/Users/donie/.lmstudio/bin"
 # End of LM Studio CLI section
 
+
+# bun completions
+[ -s "/Users/donie/.bun/_bun" ] && source "/Users/donie/.bun/_bun"
