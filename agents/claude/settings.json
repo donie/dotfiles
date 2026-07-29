@@ -5,11 +5,32 @@
   },
   "enabledPlugins": {
     "context7@claude-plugins-official": true,
-    "superpowers@superpowers-marketplace": true,
     "financial-analysis@financial-services-plugins": true,
     "equity-research@financial-services-plugins": true,
     "swift-lsp@claude-plugins-official": true
   },
+  "extraKnownMarketplaces": {
+    "openai-codex": {
+      "source": {
+        "source": "github",
+        "repo": "openai/codex-plugin-cc"
+      }
+    }
+  },
   "effortLevel": "medium",
-  "voiceEnabled": true
+  "tui": "fullscreen",
+  "voiceEnabled": true,
+  "hooks": {
+    "SubagentStart": [
+      {
+        "matcher": "tldraw-offline",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh '/Users/donie/skills/tldraw-offline/inject-server-context.sh' SubagentStart"
+          }
+        ]
+      }
+    ]
+  }
 }
