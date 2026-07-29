@@ -125,6 +125,3 @@ status --is-interactive; and rbenv init - fish | source
 # Added by LM Studio CLI (lms)
 set -gx PATH $PATH /Users/donie/.lmstudio/bin
 # End of LM Studio CLI section
-
-# Added by Antigravity
-fish_add_path /Users/donie/.antigravity/antigravity/bin
