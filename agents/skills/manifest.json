@@ -1,7 +1,8 @@
 {
   "sources": [
     "slidevjs/slidev",
-    "pbakaus/impeccable"
+    "pbakaus/impeccable",
+    "jakubkrehel/skills"
   ],
   "selective": {
     "mitsuhiko/agent-stuff": [
