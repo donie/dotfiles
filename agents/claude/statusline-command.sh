@@ -7,10 +7,14 @@ set -f  # disable globbing
 
 input=$(cat)
 
-# File mtime as epoch seconds. Try GNU first: Homebrew coreutils shadows BSD
-# stat on macOS, and GNU `stat -f` means *statfs* and EXITS 0, so a
-# `stat -f %m || stat -c %Y` chain silently yields garbage instead of falling
-# back — which made every cache look expired and hammered the usage endpoint.
+# File mtime as epoch seconds. GNU first, because Homebrew coreutils shadows
+# BSD stat on macOS and the reverse order is unsafe: GNU `stat -f` means
+# *statfs*, so `stat -f %m FILE` reads %m as a filename and dumps a block of
+# filesystem info for FILE to STDOUT before exiting 1. The `||` fallback does
+# run, but its epoch is appended to that dump, so `$(...)` captures ~240 bytes
+# of garbage. Ordering matters for stdout pollution, not exit status.
+# This order is still portable: BSD `stat -c` fails with a usage error on
+# stderr only, leaving stdout clean for the `-f %m` fallback.
 file_mtime() {
   stat -c %Y "$1" 2>/dev/null || stat -f %m "$1" 2>/dev/null
 }
