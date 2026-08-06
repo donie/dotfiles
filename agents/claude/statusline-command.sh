@@ -7,6 +7,14 @@ set -f  # disable globbing
 
 input=$(cat)
 
+# File mtime as epoch seconds. Try GNU first: Homebrew coreutils shadows BSD
+# stat on macOS, and GNU `stat -f` means *statfs* and EXITS 0, so a
+# `stat -f %m || stat -c %Y` chain silently yields garbage instead of falling
+# back — which made every cache look expired and hammered the usage endpoint.
+file_mtime() {
+  stat -c %Y "$1" 2>/dev/null || stat -f %m "$1" 2>/dev/null
+}
+
 cwd=$(echo        "$input" | jq -r '.workspace.current_dir // .cwd // ""')
 model=$(echo      "$input" | jq -r '.model.display_name // ""')
 used=$(echo       "$input" | jq -r '.context_window.used_percentage // empty')
@@ -116,7 +124,7 @@ if [ -n "$version" ]; then
   update_data=""
 
   if [ -f "$update_cache" ]; then
-    ucache_mtime=$(stat -f %m "$update_cache" 2>/dev/null || stat -c %Y "$update_cache" 2>/dev/null)
+    ucache_mtime=$(file_mtime "$update_cache")
     now_u=$(date +%s)
     ucache_age=$(( now_u - ucache_mtime ))
     if [ "$ucache_age" -lt "$update_max_age" ]; then
@@ -223,20 +231,18 @@ format_reset_time() {
   local epoch
   epoch=$(iso_to_epoch "$iso_str")
   [ -z "$epoch" ] && return
+  local fmt out
   case "$style" in
-    time)
-      date -j -r "$epoch" +"%l:%M%p" 2>/dev/null | sed 's/^ //' | tr '[:upper:]' '[:lower:]' || \
-      date -d "@$epoch" +"%l:%M%P" 2>/dev/null | sed 's/^ //'
-      ;;
-    datetime)
-      date -j -r "$epoch" +"%b %-d, %l:%M%p" 2>/dev/null | sed 's/  / /g; s/^ //' | tr '[:upper:]' '[:lower:]' || \
-      date -d "@$epoch" +"%b %-d, %l:%M%P" 2>/dev/null | sed 's/  / /g; s/^ //'
-      ;;
-    *)
-      date -j -r "$epoch" +"%b %-d" 2>/dev/null | tr '[:upper:]' '[:lower:]' || \
-      date -d "@$epoch" +"%b %-d" 2>/dev/null
-      ;;
+    time)     fmt="%l:%M%p" ;;
+    datetime) fmt="%b %-d, %l:%M%p" ;;
+    *)        fmt="%b %-d" ;;
   esac
+  # Resolve BEFORE piping — a `cmd | sed || fallback` chain takes its exit
+  # status from the LAST pipeline element, so the fallback can never fire.
+  out=$(date -d "@$epoch" +"$fmt" 2>/dev/null)          # GNU
+  [ -z "$out" ] && out=$(date -j -r "$epoch" +"$fmt" 2>/dev/null)  # BSD
+  [ -z "$out" ] && return
+  printf '%s' "$out" | sed 's/  */ /g; s/^ //' | tr '[:upper:]' '[:lower:]'
 }
 
 pad_column() {
@@ -251,42 +257,65 @@ pad_column() {
   fi
 }
 
-# Fetch usage data (cached for 60 s in /tmp/claude/statusline-usage-cache.json)
+# Fetch usage data. The cache holds only LAST-KNOWN-GOOD payloads: an error
+# body (e.g. HTTP 429 {"error":...}) is still valid JSON, so validating with
+# `jq .` alone poisons the cache and freezes every bar at 0%.
 cache_file="/tmp/claude/statusline-usage-cache.json"
-cache_max_age=60
+backoff_file="/tmp/claude/statusline-usage-backoff"
+cache_max_age=180    # refresh at most every 3 min
+backoff_secs=300     # after a failed fetch, don't retry for 5 min
+stale_after=1800     # flag the line as stale if good data is >30 min old
 mkdir -p /tmp/claude
 
-needs_refresh=true
+now=$(date +%s)
 usage_data=""
+cache_age=""
 
 if [ -f "$cache_file" ]; then
-  cache_mtime=$(stat -f %m "$cache_file" 2>/dev/null || stat -c %Y "$cache_file" 2>/dev/null)
-  now=$(date +%s)
+  cache_mtime=$(file_mtime "$cache_file")
   cache_age=$(( now - cache_mtime ))
-  if [ "$cache_age" -lt "$cache_max_age" ]; then
+  usage_data=$(cat "$cache_file" 2>/dev/null)
+fi
+
+needs_refresh=true
+[ -n "$cache_age" ] && [ "$cache_age" -lt "$cache_max_age" ] && needs_refresh=false
+
+# Respect backoff after a recent failure
+if $needs_refresh && [ -f "$backoff_file" ]; then
+  bo_mtime=$(file_mtime "$backoff_file")
+  if [ -n "$bo_mtime" ] && [ $(( now - bo_mtime )) -lt "$backoff_secs" ]; then
     needs_refresh=false
-    usage_data=$(cat "$cache_file" 2>/dev/null)
   fi
 fi
 
 if $needs_refresh; then
   token=$(get_oauth_token)
   if [ -n "$token" ] && [ "$token" != "null" ]; then
+    ua_version="${version:-2.1.223}"
     response=$(curl -s --max-time 5 \
       -H "Accept: application/json" \
       -H "Content-Type: application/json" \
       -H "Authorization: Bearer $token" \
       -H "anthropic-beta: oauth-2025-04-20" \
-      -H "User-Agent: claude-code/2.1.34" \
+      -H "User-Agent: claude-code/${ua_version}" \
       "https://api.anthropic.com/api/oauth/usage" 2>/dev/null)
-    if [ -n "$response" ] && echo "$response" | jq . >/dev/null 2>&1; then
+    # Accept only a payload that actually carries usage data
+    if [ -n "$response" ] && echo "$response" | jq -e '.five_hour.utilization != null' >/dev/null 2>&1; then
       usage_data="$response"
+      cache_age=0
       echo "$response" > "$cache_file"
+      rm -f "$backoff_file"
+    else
+      touch "$backoff_file"   # keep serving the previous good cache
     fi
+  else
+    touch "$backoff_file"
   fi
-  if [ -z "$usage_data" ] && [ -f "$cache_file" ]; then
-    usage_data=$(cat "$cache_file" 2>/dev/null)
-  fi
+fi
+
+# Never render an error body as usage data
+if [ -n "$usage_data" ] && ! echo "$usage_data" | jq -e '.five_hour.utilization != null' >/dev/null 2>&1; then
+  usage_data=""
 fi
 
 line2=""
@@ -324,16 +353,31 @@ if [ -n "$usage_data" ] && echo "$usage_data" | jq -e . >/dev/null 2>&1; then
     extra_pct=$(echo "$usage_data" | jq -r '.extra_usage.utilization // 0' | awk '{printf "%.0f", $1}')
     extra_used=$(echo "$usage_data" | jq -r '.extra_usage.used_credits // 0' | awk '{printf "%.2f", $1/100}')
     extra_limit=$(echo "$usage_data" | jq -r '.extra_usage.monthly_limit // 0' | awk '{printf "%.2f", $1/100}')
-    extra_reset=$(date -v+1m -v1d +"%b %-d" 2>/dev/null | tr '[:upper:]' '[:lower:]')
+    extra_reset=$(date -d "$(date +%Y-%m-15) +1 month" +"%b 1" 2>/dev/null \
+                  || date -v+1m -v1d +"%b %-d" 2>/dev/null)
+    extra_reset=$(printf '%s' "$extra_reset" | tr '[:upper:]' '[:lower:]')
     col3="${white}extra:${reset} ${cyan}\$${extra_used}/\$${extra_limit}${reset}"
     [ -n "$extra_reset" ] && col3+=" ${dim}↺ ${extra_reset}${reset}"
   fi
 
   line2="${col1}${sep}${col2}"
   [ -n "$col3" ] && line2+="${sep}${col3}"
+
+  # Flag visibly when we're serving cached data the API refused to refresh
+  if [ -n "$cache_age" ] && [ "$cache_age" -gt "$stale_after" ]; then
+    line2+="${sep}${yellow}⚠ stale $(( cache_age / 60 ))m${reset}"
+  fi
+else
+  # No usable usage data (rate-limited, offline, no token). Say so rather than
+  # rendering a fake 0% — but still emit a line so the row never vanishes.
+  line2="${dim}5h: — | weekly: — (usage api unavailable)${reset}"
 fi
 
 # ── Output ────────────────────────────────────────────────────────────────────
 
 printf "%b" "$line1"
 [ -n "$line2" ] && printf "\n%b" "$line2"
+
+# Claude Code discards status line output on a nonzero exit, and the last
+# command above is a test that fails whenever line2 is empty. Always succeed.
+exit 0
