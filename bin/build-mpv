@@ -14,6 +14,18 @@ ICON_FILE="$HOME/dotfiles/mpv/MPV.icns"  # UPDATE THIS to your icon file locatio
 INSTALL_DIR="/Applications"
 BUILD_STATIC=false  # Set to true if you want static build with dylibbundler
 
+# Code signing identity used for the installed bundle.
+#
+# macOS keys TCC (Privacy & Security) grants to the app's code signature. With an
+# ad-hoc signature the key is the binary's cdhash, which changes on every rebuild,
+# so every "allow mpv to access this folder" grant is silently thrown away and the
+# next Finder double-click either re-prompts or fails to open the file (mpv then
+# falls back to the pseudo-gui idle screen). A stable self-signed certificate keeps
+# the designated requirement constant across rebuilds, so grants survive.
+#
+# Run `build-mpv --create-signing-identity` once to create it.
+SIGN_IDENTITY="${MPV_SIGN_IDENTITY:-mpv-local}"
+
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -40,6 +52,100 @@ log_error() {
     echo -e "${RED}[ERROR]${NC} $1"
 }
 
+# Note: deliberately NOT `find-identity -v`. A self-signed certificate is
+# reported as CSSMERR_TP_NOT_TRUSTED and excluded from the "valid identities"
+# list, but codesign signs with it happily and the resulting signature passes
+# `codesign --verify --strict`. Trust only matters for Gatekeeper assessment of
+# quarantined downloads, which a locally built app never goes through.
+has_signing_identity() {
+    security find-identity -p codesigning 2>/dev/null \
+        | grep -q "\"$SIGN_IDENTITY\""
+}
+
+# Create a self-signed code signing certificate in the login keychain, so the
+# bundle keeps the same code signing identity across rebuilds and macOS can
+# remember its Files & Folders / network volume permissions.
+create_signing_identity() {
+    if has_signing_identity; then
+        log_info "Signing identity '$SIGN_IDENTITY' already exists, nothing to do"
+        return 0
+    fi
+
+    local tmp
+    tmp=$(mktemp -d)
+    trap 'rm -rf "$tmp"' RETURN
+
+    log_info "Creating self-signed code signing certificate '$SIGN_IDENTITY'..."
+    openssl req -x509 -newkey rsa:2048 -nodes -days 7300 \
+        -keyout "$tmp/key.pem" -out "$tmp/cert.pem" \
+        -subj "/CN=$SIGN_IDENTITY" \
+        -addext "basicConstraints=critical,CA:false" \
+        -addext "keyUsage=critical,digitalSignature" \
+        -addext "extendedKeyUsage=critical,codeSigning" 2>/dev/null
+
+    if [ ! -s "$tmp/cert.pem" ] || [ ! -s "$tmp/key.pem" ]; then
+        log_error "openssl failed to generate the certificate ($(openssl version))"
+        return 1
+    fi
+
+    # macOS's Security framework cannot read OpenSSL 3's default PKCS#12 output
+    # (AES-256-CBC + PBKDF2 with an HMAC-SHA256 MAC); `security import` fails
+    # with "MAC verification failed during PKCS12 import". Force the legacy
+    # SHA1/3DES algorithms, and use a non-empty passphrase — an empty one trips
+    # the same check.
+    local p12pass="mpv-local-import"
+    openssl pkcs12 -export -out "$tmp/identity.p12" \
+        -inkey "$tmp/key.pem" -in "$tmp/cert.pem" \
+        -name "$SIGN_IDENTITY" \
+        -keypbe PBE-SHA1-3DES -certpbe PBE-SHA1-3DES -macalg sha1 \
+        -passout "pass:$p12pass" 2>/dev/null
+
+    if [ ! -s "$tmp/identity.p12" ]; then
+        log_error "openssl failed to export the PKCS#12 bundle"
+        return 1
+    fi
+
+    log_info "Importing into the login keychain..."
+    security import "$tmp/identity.p12" \
+        -k "$HOME/Library/Keychains/login.keychain-db" \
+        -P "$p12pass" -A -T /usr/bin/codesign || return 1
+
+    if has_signing_identity; then
+        log_success "Signing identity '$SIGN_IDENTITY' created"
+        log_info "Keychain Access shows it as untrusted; that is expected and harmless."
+    else
+        log_error "Certificate was imported but codesign cannot find it"
+        return 1
+    fi
+}
+
+# ============================================================================
+# Argument Handling
+# ============================================================================
+case "${1:-}" in
+    --create-signing-identity)
+        if create_signing_identity; then exit 0; else exit 1; fi
+        ;;
+    -h|--help)
+        echo "Usage: build-mpv [--create-signing-identity]"
+        echo
+        echo "  (no args)                   update, build, bundle and install mpv"
+        echo "  --create-signing-identity   create the '$SIGN_IDENTITY' self-signed"
+        echo "                              certificate on its own. Not normally"
+        echo "                              needed: a plain 'build-mpv' creates it"
+        echo "                              automatically when it is missing."
+        echo
+        echo "Environment:"
+        echo "  MPV_SIGN_IDENTITY           override the signing identity name"
+        exit 0
+        ;;
+    "") ;;
+    *)
+        log_error "Unknown argument: $1 (try --help)"
+        exit 1
+        ;;
+esac
+
 # ============================================================================
 # Pre-flight Checks
 # ============================================================================
@@ -61,11 +167,23 @@ else
     SKIP_ICON=false
 fi
 
-# Check if fileicon is installed
-if [ "$SKIP_ICON" = false ] && ! command -v fileicon &> /dev/null; then
-    log_warning "fileicon not found. Install with: brew install fileicon"
-    log_warning "Will skip icon setting step"
-    SKIP_ICON=true
+# Ensure a stable signing identity exists. It lives in the login keychain rather
+# than in this repo (a private key has no business being committed), so a freshly
+# set up Mac won't have one — create it on demand. The certificate is per-machine,
+# which is fine: macOS privacy grants are per-machine too and never sync.
+#
+# Falling back to ad-hoc still produces a working app, but macOS will forget its
+# privacy permissions on every rebuild.
+if has_signing_identity; then
+    log_info "Signing identity found: $SIGN_IDENTITY"
+    USE_ADHOC=false
+elif create_signing_identity; then
+    USE_ADHOC=false
+else
+    log_warning "Could not create the '$SIGN_IDENTITY' signing identity"
+    log_warning "Falling back to ad-hoc signing; macOS will re-prompt for folder"
+    log_warning "access after every rebuild"
+    USE_ADHOC=true
 fi
 
 # ============================================================================
@@ -173,6 +291,80 @@ git pull origin master
 log_success "Repository updated successfully"
 
 # ============================================================================
+# Apply Local Patches
+# ============================================================================
+# Local fixes for upstream bugs that mpv has not fixed yet. The reset/pull above
+# wipes the working tree, so these are re-applied from scratch on every build.
+#
+# Each patch file carries its own header explaining why it exists, how to tell
+# when upstream has fixed the underlying bug, and what to do at that point.
+# Read that header before touching a patch.
+#
+# Two things can happen as upstream moves, and they mean different things:
+#
+#   - "already present upstream" (warning, build continues): upstream landed an
+#     equivalent fix, so the patch is redundant and should be deleted. This is
+#     detected by reverse-applying each patch first, because `git apply --3way`
+#     reports an already-applied patch as a successful no-op -- without the
+#     check, a dead patch would keep "succeeding" indefinitely.
+#
+#   - "Failed to apply" (error, build aborts): upstream reworked this code some
+#     other way. Aborting is deliberate; silently building without the patch
+#     would quietly reintroduce the bug it fixes. The fix is to check whether
+#     the bug is actually fixed upstream and then delete or rebase the patch --
+#     not to bypass this step.
+#
+# Set MPV_SKIP_PATCHES=1 only to bisect whether a patch itself is at fault.
+PATCH_DIR="$HOME/dotfiles/mpv/patches"
+if [ -n "${MPV_SKIP_PATCHES:-}" ]; then
+    log_warning "MPV_SKIP_PATCHES set, building WITHOUT local patches"
+    log_warning "Any bug a patch fixes is present in this build; do not install it"
+    log_warning "as your daily mpv without rebuilding cleanly afterwards"
+elif [ -d "$PATCH_DIR" ] && compgen -G "$PATCH_DIR/*.patch" > /dev/null; then
+    for patch in "$PATCH_DIR"/*.patch; do
+        log_info "Applying $(basename "$patch")..."
+
+        # Detect a patch upstream has made redundant. `git apply --3way` treats
+        # an already-applied patch as a successful no-op and exits 0, so without
+        # this check an obsolete patch would keep "succeeding" forever and never
+        # signal that it should be deleted. A clean reverse-apply means the
+        # change is already present in the freshly pulled tree.
+        if git apply --reverse --check "$patch" 2>/dev/null; then
+            log_warning "$(basename "$patch") is already present upstream"
+            log_warning "The bug it fixes has been fixed in mpv itself, so this patch"
+            log_warning "is now redundant. Delete it:"
+            log_warning "  rm $patch"
+            continue
+        fi
+
+        # --3way falls back to a merge when context has shifted, so a patch
+        # survives unrelated edits nearby and only fails when the code it
+        # actually touches has changed. Note it also implies --index, so
+        # afterwards `git diff` compares against the patched index -- use
+        # `git diff HEAD` to regenerate a patch.
+        if git apply --3way "$patch"; then
+            log_success "Applied $(basename "$patch")"
+        else
+            log_error "Failed to apply $(basename "$patch")"
+            log_error ""
+            log_error "Upstream changed the code this patch touches. This is expected"
+            log_error "eventually and is not a build system problem. Do not skip it."
+            log_error ""
+            log_error "Read the header of the patch file, which records why it exists,"
+            log_error "how to check whether upstream fixed the bug, and what to do:"
+            log_error "  $patch"
+            log_error ""
+            log_error "Short version: if upstream fixed it, delete the patch file. If not,"
+            log_error "edit $MPV_REPO_DIR/input/*.c by hand and regenerate with"
+            log_error "'git diff HEAD -- <file>', keeping the explanatory header."
+            exit 1
+        fi
+    done
+else
+    log_info "No local patches to apply"
+fi
+
+# ============================================================================
 # Build mpv
 # ============================================================================
 log_info "Setting up build with meson..."
@@ -210,6 +402,50 @@ fi
 log_success "App bundle created successfully"
 
 # ============================================================================
+# Patch Bundle
+# ============================================================================
+# Everything that modifies the bundle must happen here, BEFORE the final
+# codesign pass. Touching a signed bundle invalidates its signature, and an
+# invalidated signature is what makes macOS forget mpv's folder permissions.
+BUNDLE="build/mpv.app"
+PLIST="$BUNDLE/Contents/Info.plist"
+
+log_info "Adding privacy usage descriptions to Info.plist..."
+# Without these keys macOS has no purpose string to show for TCC-protected
+# locations, so opening a file from one can be denied outright instead of
+# prompting. mpv then starts idle and shows the "Drop files or URLs" screen.
+add_usage_string() {
+    /usr/libexec/PlistBuddy -c "Delete :$1" "$PLIST" &>/dev/null || true
+    /usr/libexec/PlistBuddy -c "Add :$1 string $2" "$PLIST"
+}
+add_usage_string NSNetworkVolumesUsageDescription   "mpv needs access to network volumes to play media stored on them."
+add_usage_string NSRemovableVolumesUsageDescription "mpv needs access to removable volumes to play media stored on them."
+add_usage_string NSDesktopFolderUsageDescription    "mpv needs access to your Desktop to play media stored there."
+add_usage_string NSDocumentsFolderUsageDescription  "mpv needs access to your Documents folder to play media stored there."
+add_usage_string NSDownloadsFolderUsageDescription  "mpv needs access to your Downloads folder to play media stored there."
+
+if [ "$SKIP_ICON" = false ]; then
+    log_info "Installing custom icon into bundle resources..."
+    # Replacing icon.icns keeps the icon inside the signed payload. The old
+    # `fileicon` approach wrote an Icon\r file and a com.apple.FinderInfo xattr
+    # into the app AFTER signing, which permanently broke the signature.
+    cp "$ICON_FILE" "$BUNDLE/Contents/Resources/icon.icns"
+    # CFBundleIconName resolves against Assets.car and would win over
+    # CFBundleIconFile, so drop it and let icon.icns be used.
+    /usr/libexec/PlistBuddy -c "Delete :CFBundleIconName" "$PLIST" &>/dev/null || true
+fi
+
+# Strip anything that would make the signature unsealable: Finder icon files,
+# stray xattrs, and the placeholder .gitkeep files the bundle template ships
+# inside Contents/MacOS (codesign treats everything in there as code and chokes
+# on them with "code object is not signed at all").
+find "$BUNDLE" -name "Icon?" -delete 2>/dev/null || true
+find "$BUNDLE" -name ".gitkeep" -delete
+xattr -cr "$BUNDLE"
+
+log_success "Bundle patched"
+
+# ============================================================================
 # Install to Applications
 # ============================================================================
 log_info "Installing to $INSTALL_DIR..."
@@ -223,24 +459,50 @@ cp -R build/mpv.app "$INSTALL_DIR/"
 log_success "mpv.app installed to $INSTALL_DIR"
 
 # ============================================================================
-# Set Custom Icon
+# Code Sign
 # ============================================================================
-if [ "$SKIP_ICON" = false ]; then
-    log_info "Setting custom icon..."
+# This must be the last step that touches the bundle. A bundle that fails
+# `codesign --verify` has no stable identity, so macOS refuses to persist its
+# TCC grants and Finder double-clicks intermittently land on the idle screen.
+INSTALLED_APP="$INSTALL_DIR/mpv.app"
 
-    # Check if we need sudo
-    if [ -w "$INSTALL_DIR/mpv.app" ]; then
-        fileicon set "$INSTALL_DIR/mpv.app" "$ICON_FILE"
-    else
-        log_info "Requesting sudo permissions for icon setting..."
-        sudo fileicon set "$INSTALL_DIR/mpv.app" "$ICON_FILE"
-    fi
+xattr -cr "$INSTALLED_APP"
 
-    # Refresh Finder to show new icon
-    killall Finder 2>/dev/null || true
-
-    log_success "Custom icon applied"
+if [ "$USE_ADHOC" = true ]; then
+    log_info "Code signing (ad-hoc)..."
+    CODESIGN_ID="-"
+else
+    log_info "Code signing with identity '$SIGN_IDENTITY'..."
+    CODESIGN_ID="$SIGN_IDENTITY"
 fi
+
+# Nested code (bundled dylibs from a static build) must be signed before the
+# bundle that seals it. Signing the bundle itself covers Contents/MacOS/mpv, so
+# don't sign the main executable separately.
+find "$INSTALLED_APP/Contents/MacOS" "$INSTALLED_APP/Contents/Frameworks" \
+    -type f \( -name "*.dylib" -o -name "*.so" \) -print0 2>/dev/null \
+    | xargs -0 codesign --force --timestamp=none -s "$CODESIGN_ID" 2>/dev/null || true
+
+codesign --force --timestamp=none -s "$CODESIGN_ID" "$INSTALLED_APP"
+
+log_info "Verifying signature..."
+if codesign --verify --strict "$INSTALLED_APP" 2>&1; then
+    log_success "Signature is valid"
+else
+    log_error "Signature verification FAILED"
+    log_error "macOS will not remember mpv's folder permissions in this state"
+    exit 1
+fi
+
+# ============================================================================
+# Register with LaunchServices
+# ============================================================================
+# Picks up the new Info.plist (document types, usage strings, icon) without
+# needing a Finder restart or a logout.
+log_info "Registering app with LaunchServices..."
+/System/Library/Frameworks/CoreServices.framework/Versions/A/Frameworks/LaunchServices.framework/Versions/A/Support/lsregister \
+    -f "$INSTALLED_APP"
+log_success "App registered"
 
 # ============================================================================
 # Final Summary
@@ -256,3 +518,9 @@ echo ""
 log_info "You can now launch mpv from Applications or run:"
 log_info "  open -a mpv"
 echo ""
+
+if [ "$USE_ADHOC" = true ]; then
+    log_warning "Signed ad-hoc: macOS will forget mpv's folder permissions on the next rebuild."
+    log_warning "See the earlier warnings for why the signing identity could not be created."
+    echo ""
+fi

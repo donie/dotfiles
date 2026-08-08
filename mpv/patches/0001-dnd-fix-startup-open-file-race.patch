@@ -1,0 +1,114 @@
+Fix silent loss of files opened from Finder at mpv startup
+
+WHY THIS EXISTS
+    input/dnd.c registers two property observers back to back and gates all
+    drop handling on `enabled`, which only becomes true when the initial
+    "input-builtin-drag-and-drop" event arrives. The initial events for the two
+    observers have no guaranteed order, so when "dropped-files" arrives first
+    the file is discarded silently -- no log line, no command, no error.
+
+    Finder double-clicks travel this same path (application:openURLs: ->
+    mp_input_drop_files), so losing the race loses the open. Because the .app
+    bundle runs with --player-operation-mode=pseudo-gui (which implies --idle),
+    mpv then sits on the "Drop files or URLs to play here" screen rather than
+    playing, intermittently and with nothing in the log to explain it.
+
+    Measured on this machine before the fix: 2 of 5 cold launches failed. The
+    failing runs logged "Opening dropped files" but issued zero loadfile
+    commands. After the fix: 10 of 10 cold launches played.
+
+    The patch reads the option synchronously before registering either
+    observer, so the ordering dependency is gone. The observer still keeps the
+    flag current if the option changes at runtime.
+
+WHEN TO DROP THIS PATCH
+    When upstream fixes the race itself. build-mpv watches for this and will
+    say so; there are two different signals depending on how upstream fixes it.
+
+    1. "already present upstream" (a warning, build continues)
+           Upstream landed a change equivalent to this one, so the patch is now
+           redundant. Note that `git apply --3way` treats an already-applied
+           patch as a successful no-op and exits 0 -- build-mpv reverse-applies
+           each patch first specifically to catch this, because otherwise an
+           obsolete patch would keep silently "succeeding" forever.
+
+    2. "Failed to apply" (an error, build aborts)
+           Upstream reworked this code in some other way. The patch may be
+           redundant, or may still be needed in a different form. Do not skip
+           it to get the build through.
+
+    Either way, confirm by reading the code:
+        cd ~/_runtime/mpv
+        git log --oneline HEAD..origin/master -- input/dnd.c
+        grep -n 'enabled' input/dnd.c
+
+    The race is fixed upstream if `enabled` is seeded before the observers are
+    registered, or if the separate enable flag is gone entirely (e.g. the option
+    is queried at drop time, or pending drops are buffered until it is known).
+    If neither is true, the bug is still there regardless of what happened to
+    the surrounding code.
+
+WHAT TO CHANGE THEN
+    Fixed upstream      -> delete this file. build-mpv logs "No local patches
+                           to apply" when the directory is empty; nothing else
+                           needs editing.
+
+    Still broken, but
+    the code moved      -> rebase it. Edit ~/_runtime/mpv/input/dnd.c by hand,
+                           then regenerate the body:
+                             git diff HEAD -- input/dnd.c
+                           and re-add this header above it. Diff against HEAD,
+                           not with a bare `git diff`: `git apply --3way`
+                           implies --index, so after a build the index already
+                           holds the patched blob and a plain diff comes out
+                           empty or partial.
+
+    Verifying a change  -> the check that matters is cold-launch open, not that
+                           mpv builds. Quit mpv, `open -a mpv <file>` on a real
+                           media file, and confirm the log has both "Opening
+                           dropped files" and "Run command: loadfile". Repeat
+                           ~10 times; the bug is intermittent, so a single pass
+                           proves nothing.
+
+    Upstream base for this patch: dd5d17d328 (blob b03b2bb486)
+    Reported upstream: no, deliberately. Carried locally instead. Upstream will
+    reach this on its own schedule; if it does, the "already present upstream"
+    warning above is what surfaces it, so nothing here depends on having filed
+    a report.
+
+diff --git a/input/dnd.c b/input/dnd.c
+index b03b2bb486..ca20bbc9a9 100644
+--- a/input/dnd.c
++++ b/input/dnd.c
+@@ -111,6 +111,31 @@ static MP_THREAD_VOID mpv_event_loop_fn(void *arg)
+     mp_thread_set_name("dnd");
+     mpv_handle *mpv = arg;
+     bool enabled = false;
++
++    // Seed the flag synchronously, before either observer below is registered.
++    //
++    // Both observers deliver an initial property change event, and their
++    // relative order is unspecified. Letting the "input-builtin-drag-and-drop"
++    // event be the only thing that sets `enabled` is therefore a race: when
++    // "dropped-files" arrives first, the branch below sees enabled == false and
++    // drops the files on the floor. Nothing is logged and no command is issued,
++    // so the failure is completely silent.
++    //
++    // Files opened from the file manager go through this same path, not just
++    // literal drag-and-drop (on macOS: application:openURLs: ->
++    // mp_input_drop_files), so losing the race loses the file the user opened.
++    // With --idle (implied by --player-operation-mode=pseudo-gui, i.e. the
++    // macOS .app bundle) mpv then sits on the idle screen instead of playing,
++    // intermittently and with no diagnostic. Opening the file again usually
++    // works, because by then the flag has been set.
++    //
++    // Reading the property up front removes the ordering dependency entirely;
++    // the observer still keeps the flag current if the option changes later.
++    int builtin_dnd = 0;
++    if (mpv_get_property(mpv, "input-builtin-drag-and-drop", MPV_FORMAT_FLAG,
++                         &builtin_dnd) >= 0)
++        enabled = builtin_dnd;
++
+     mpv_observe_property(mpv, 0, "dropped-files", MPV_FORMAT_NODE);
+     mpv_observe_property(mpv, 0, "input-builtin-drag-and-drop", MPV_FORMAT_FLAG);
+ 
