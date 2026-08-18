@@ -101,6 +101,11 @@ if type -q brew
         set -l HOMEBREW_PREFIX (brew --prefix)
     end
     for d in $HOMEBREW_PREFIX/opt/*/libexec/gnubin
+        # Keep GNU utilities available, but do not shadow macOS tools that
+        # Homebrew needs when building GMP and Python.
+        if test $d = $HOMEBREW_PREFIX/opt/coreutils/libexec/gnubin; or test $d = $HOMEBREW_PREFIX/opt/findutils/libexec/gnubin
+            continue
+        end
         fish_add_path $d
     end
 end
