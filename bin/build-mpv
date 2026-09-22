@@ -219,39 +219,64 @@ if ! command -v brew &> /dev/null; then
     exit 1
 fi
 
-# Check for meson (build system)
-if ! command -v meson &> /dev/null; then
-    log_warning "meson not found, installing build dependencies..."
-    log_info "This will run: brew install --build-from-source --only-dependencies mpv"
+# Ask brew what mpv declares (runtime + :build deps) and install whatever is
+# missing. Deriving the list instead of hardcoding tools keeps this correct if
+# upstream swaps build systems or adds dependencies.
+if MPV_DECLARED_DEPS=$(HOMEBREW_NO_ENV_HINTS=1 brew deps --include-build --direct mpv); then
+    log_info "mpv declares $(echo "$MPV_DECLARED_DEPS" | wc -l | tr -d ' ') dependencies (build deps included)"
+else
+    log_warning "Could not query mpv's declared dependencies from brew"
+    MPV_DECLARED_DEPS=""
+fi
+
+# Runtime dependencies (the libraries mpv links against).
+log_info "Ensuring mpv runtime dependencies are installed..."
+brew install --build-from-source --only-dependencies mpv
+log_success "mpv runtime dependencies satisfied"
+
+# `brew install --only-dependencies` prunes a formula's :build dependencies
+# unless brew is actually going to build it from source
+# (formula_installer.rb: `dep.build? && !install_bottle_for?(...) &&
+# (formula.head? || !dependent.latest_version_installed?)`). With an up-to-date
+# mpv already installed that is always false, so meson/ninja/pkgconf/docutils are
+# dropped and brew reports "All dependencies are satisfied" while the build
+# toolchain is missing. There is no `--include-build` for `brew install` (only
+# for `brew deps`/`brew uses`), so install whatever brew declared but skipped.
+MISSING_DEPS=()
+while IFS= read -r dep; do
+    [ -n "$dep" ] || continue
+    brew list "$dep" &> /dev/null || MISSING_DEPS+=("$dep")
+done <<< "$MPV_DECLARED_DEPS"
+
+if [ ${#MISSING_DEPS[@]} -gt 0 ]; then
+    log_warning "dependencies brew left uninstalled: ${MISSING_DEPS[*]}"
+    log_info "This will run: brew install ${MISSING_DEPS[*]}"
     log_info "This may take a while on first run..."
 
-    brew install --build-from-source --only-dependencies mpv
+    # Deliberately installed by name (not --as-dependency): build-only tools are
+    # leaves in the dependency graph, so brew autoremove was free to delete
+    # meson between runs and break this script. Installing them on request keeps
+    # the toolchain around; `brew install --as-dependency` restores the old
+    # autoremovable behaviour if you prefer brew to own the lifecycle.
+    brew install "${MISSING_DEPS[@]}"
 
-    log_success "Build dependencies installed"
+    log_success "Missing dependencies installed"
 else
-    log_info "meson found: $(meson --version)"
+    log_info "All declared dependencies are present"
 fi
 
-# Check for ninja (build tool used by meson, NOT in mpv deps)
-if ! command -v ninja &> /dev/null; then
-    log_warning "ninja not found, installing..."
-    brew install ninja
-else
-    log_info "ninja found: $(ninja --version)"
-fi
+# `luajit` in that list is brew's LuaJIT 2.1 (rolling release, arm64 bottles),
+# which is what mpv's Homebrew formula declares and what this build links
+# against. luajit-openresty is deliberately not used: it is keg-only and
+# conflicts with luajit, so pkg-config only sees it when PKG_CONFIG_PATH points
+# at it. It was a workaround for the LuaJIT 2.0/2.1.0-beta3 era (broken on
+# macOS, no arm64), which ended when upstream's v2.1 branch became the rolling
+# release that Homebrew now ships.
 
-# Check luajit-openresty (specific variant needed, NOT the regular luajit)
-if ! brew list luajit-openresty &>/dev/null; then
-    log_warning "luajit-openresty not found, installing..."
-    brew install luajit-openresty
-else
-    log_info "luajit-openresty is installed"
-fi
-
-# Verify meson is now available
+# Verify the build toolchain the build steps below rely on is available
 if ! command -v meson &> /dev/null; then
     log_error "meson still not found after installation attempt"
-    log_error "Please run manually: brew install --build-from-source --only-dependencies mpv"
+    log_error "Please run manually: brew install meson"
     exit 1
 fi
 
@@ -368,7 +393,10 @@ fi
 # Build mpv
 # ============================================================================
 log_info "Setting up build with meson..."
-meson setup build --wipe 2>/dev/null || meson setup build
+# -Dlua=luajit: the option defaults to `auto`, which silently yields an mpv with
+# no osc/scripts if no Lua is found. Being explicit makes a missing LuaJIT a hard
+# configure error instead.
+meson setup build --wipe -Dlua=luajit 2>/dev/null || meson setup build -Dlua=luajit
 
 log_info "Compiling mpv (this may take a few minutes)..."
 meson compile -C build
