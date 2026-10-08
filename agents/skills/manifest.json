@@ -7,7 +7,6 @@
   "selective": {
     "mitsuhiko/agent-stuff": [
       "commit",
-      "mermaid",
       "uv"
     ],
     "mattpocock/skills": [
@@ -29,7 +28,7 @@
       "to-tickets",
       "triage",
       "wayfinder",
-      "writing-great-skills"
+      "writing-for-agents"
     ]
   }
 }

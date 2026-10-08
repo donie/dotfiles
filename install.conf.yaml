@@ -54,6 +54,31 @@
       create: true
       path: sublime/Packages/User/
 
+# Local skills kept in this repo, shared by every agent (see agents/skills/local/README.md).
+# Separate link block: ~/.claude/skills/ is already a key in the block above.
+- link:
+    ~/.claude/skills/:
+      glob: true
+      path: agents/skills/local/*
+      exclude: [ agents/skills/local/README.md ]
+      create: true
+      relink: true
+      relative: true
+    ~/.codex/skills/:
+      glob: true
+      path: agents/skills/local/*
+      exclude: [ agents/skills/local/README.md ]
+      create: true
+      relink: true
+      relative: true
+    ~/.pi/agent/skills/:
+      glob: true
+      path: agents/skills/local/*
+      exclude: [ agents/skills/local/README.md ]
+      create: true
+      relink: true
+      relative: true
+
 - create:
     ~/.ssh:
       mode: 0700
