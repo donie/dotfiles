@@ -69,3 +69,45 @@ rex.bind(P .. "shift+0", "session.next") -- ")"
 
 -- Search (closest to tmux copy-mode search) ----------------------------------
 rex.bind(P .. "/", "client.find.open")
+
+-- Session snapshots (tmux-resurrect style) -----------------------------------
+-- CLI: rex do session_save name=work | rex do session_restore name=work
+--      rex do session_snapshots
+local snapshot = require("snapshot")
+
+rex.action{
+  name = "session_save",
+  title = "Save Sessions Snapshot",
+  description = "Save every session's windows, splits, folders and programs.",
+  category = "Snapshots",
+  args = { name = "string?" },
+  run = function(ctx, args)
+    local r = snapshot.save(args and args.name)
+    rex.log("info", string.format("saved snapshot %q: %d sessions, %d windows", r.saved, r.sessions, r.windows))
+    return r
+  end,
+}
+
+rex.action{
+  name = "session_restore",
+  title = "Restore Sessions Snapshot",
+  description = "Rebuild saved sessions that aren't running.",
+  category = "Snapshots",
+  args = { name = "string?" },
+  run = function(ctx, args)
+    local r = snapshot.restore(args and args.name)
+    rex.log("info", string.format("restored %d sessions, skipped %d, failed %d from %q",
+      #r.restored, #r.skipped, #r.failed, r.snapshot))
+    return r
+  end,
+}
+
+rex.action{
+  name = "session_snapshots",
+  title = "List Session Snapshots",
+  category = "Snapshots",
+  run = function() return snapshot.list() end,
+}
+
+rex.bind(P .. "ctrl+s", "session_save")
+rex.bind(P .. "ctrl+r", "session_restore")
