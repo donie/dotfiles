@@ -21,6 +21,7 @@
     ~/.gitconfig: shell/gitconfig
     ~/_runtime/Brewfile: dotfiles-private/brewfile
     ~/.tmux.conf: tmux/tmux.conf
+    ~/.config/rex: rex/
     ~/.vimrc: vim/vimrc
     ~/.vim/autoload/plug.vim: vim/plug.vim
     ~/.claude/settings.json: agents/claude/settings.json
