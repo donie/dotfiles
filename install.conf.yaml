@@ -39,6 +39,14 @@
     ~/.pi/agent/settings.json: agents/pi/settings.json
     ~/.pi/agent/keybindings.json: agents/pi/keybindings.json
     ~/.pi/agent/extensions/uv.ts: agents/pi/extensions/uv.ts
+    # Search provider routing only. Deliberately credential-free: this repo is
+    # public, so NEVER put a literal API key here. Use "$ENV_VAR" or
+    # "!command" credential sources if a provider key is ever needed.
+    # NOTE: no `force: true` on purpose - the pi-web-access extension writes back
+    # to this file and it is the documented place for local API keys, so a
+    # pre-existing local copy must be removed or merged by hand rather than
+    # silently deleted. Without force, dotbot fails loudly instead.
+    ~/.pi/agent/web-search.json: agents/pi/web-search.json
     ~/.config/nvim: nvim/
     ~/.config/mpv:
       path: mpv/
