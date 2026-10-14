@@ -47,6 +47,8 @@
     # pre-existing local copy must be removed or merged by hand rather than
     # silently deleted. Without force, dotbot fails loudly instead.
     ~/.pi/agent/web-search.json: agents/pi/web-search.json
+    # Global agent guidance, appended to Pi's system prompt in every session.
+    ~/.pi/agent/APPEND_SYSTEM.md: agents/pi/APPEND_SYSTEM.md
     ~/.config/nvim: nvim/
     ~/.config/mpv:
       path: mpv/
