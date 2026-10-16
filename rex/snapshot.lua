@@ -86,20 +86,19 @@ local function basename(path)
   return (path:match("([^/]+)$") or path)
 end
 
-local function must(result, err, what)
-  if err ~= nil then error((what or "rex call") .. ": " .. tostring(err), 0) end
+-- rex.call returns (result, err); call it as the last argument so err survives.
+local function must(what, method, args)
+  local result, err = rex.call(method, args)
+  if err ~= nil then error(what .. ": " .. tostring(err), 0) end
   return result
 end
 
--- Per-session calls (view, block methods, focus, layers...) need this
--- connection attached to the session. Returns the session's view.
-local function attach(session_id)
-  local r = must(rex.call("session.attach", { session_id = session_id }), nil, "session.attach")
-  return r.view
-end
-
-local function detach(session_id)
-  rex.call("session.detach", { session_id = session_id })
+-- NOTE: never call session.attach/detach here. Actions run on the client's own
+-- control connection, so detaching would unattach the Rex app from the session
+-- it is displaying ("stream is not attached to session", 409). Every call below
+-- passes an explicit session_id instead, which works without attaching.
+local function view_of(session_id)
+  return must("session.view", "session.view", { session_id = session_id })
 end
 
 -- Serialize a plain Lua value (tables, strings, numbers, booleans).
@@ -180,10 +179,14 @@ local function save_node(node, blocks, session_id, window)
 end
 
 function M.capture()
-  local list = must(rex.call("session.list"), nil, "session.list")
+  local list = must("session.list", "session.list")
   local snap = { version = 1, saved_at = os.date("!%Y-%m-%dT%H:%M:%SZ"), sessions = {} }
   for _, s in ipairs(list.sessions or {}) do
-    local view = attach(s.session_id)
+    local ok, view = pcall(view_of, s.session_id)
+    if not ok then
+      rex.log("warn", "snapshot: skipping session " .. tostring(s.label) .. ": " .. tostring(view))
+      goto continue
+    end
     local sess = { label = view.label or s.label, windows = {} }
     for _, w in ipairs(view.windows or {}) do
       local win = {
@@ -205,8 +208,8 @@ function M.capture()
       end
       if #win.layers > 0 then sess.windows[#sess.windows + 1] = win end
     end
-    detach(s.session_id)
     if #sess.windows > 0 then snap.sessions[#snap.sessions + 1] = sess end
+    ::continue::
   end
   return snap
 end
@@ -275,10 +278,9 @@ local function restore_session(sess)
     tiled_leaves[i] = leaves
   end
 
-  local created = must(rex.call("session.create", { label = sess.label, initial_windows = initial }),
-    nil, "session.create " .. sess.label)
+  local created = must("session.create " .. tostring(sess.label), "session.create",
+    { label = sess.label, initial_windows = initial })
   local sid = created.session_id
-  attach(sid)
   local focus_window, focus_block, zooms = nil, nil, {}
 
   local active_win
@@ -314,7 +316,6 @@ local function restore_session(sess)
   end
   if focus_window then rex.call("session.focus_window", { session_id = sid, window_id = focus_window }) end
   if focus_block then rex.call("session.focus_block", { session_id = sid, block_id = focus_block }) end
-  detach(sid)
   return sid
 end
 
@@ -329,7 +330,7 @@ function M.restore(name)
   name = name or "last"
   local snap, path = M.load(name)
   local running = {}
-  local list = must(rex.call("session.list"), nil, "session.list")
+  local list = must("session.list", "session.list")
   for _, s in ipairs(list.sessions or {}) do
     if s.label then running[s.label:lower()] = true end
   end
