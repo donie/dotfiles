@@ -266,7 +266,7 @@ if $needs_refresh; then
       -H "User-Agent: claude-code/${ua_version}" \
       "https://api.anthropic.com/api/oauth/usage" 2>/dev/null)
     # Accept only a payload that actually carries usage data
-    if [ -n "$response" ] && echo "$response" | jq -e '.five_hour.utilization != null' >/dev/null 2>&1; then
+    if [ -n "$response" ] && echo "$response" | jq -e '(.five_hour.utilization // .seven_day.utilization) != null' >/dev/null 2>&1; then
       usage_data="$response"
       cache_age=0
       echo "$response" > "$cache_file"
@@ -280,7 +280,7 @@ if $needs_refresh; then
 fi
 
 # Never render an error body as usage data
-if [ -n "$usage_data" ] && ! echo "$usage_data" | jq -e '.five_hour.utilization != null' >/dev/null 2>&1; then
+if [ -n "$usage_data" ] && ! echo "$usage_data" | jq -e '(.five_hour.utilization // .seven_day.utilization) != null' >/dev/null 2>&1; then
   usage_data=""
 fi
 
@@ -291,15 +291,21 @@ if [ -n "$usage_data" ] && echo "$usage_data" | jq -e . >/dev/null 2>&1; then
   bar_width=10
 
   # -- 5-hour (current) window --
-  five_hour_pct=$(echo "$usage_data" | jq -r '.five_hour.utilization // 0' | awk '{printf "%.0f", $1}')
-  five_hour_reset_iso=$(echo "$usage_data" | jq -r '.five_hour.resets_at // empty')
-  five_hour_reset=$(format_reset_time "$five_hour_reset_iso" "time")
-  five_hour_bar=$(build_bar "$five_hour_pct" "$bar_width")
+  # five_hour is null on verified Ultra (ex-Max 20x): 5h limit removed 30 Oct 2026.
+  # Max (ex-Max 5x) and unverified Ultra still get it, so render it when present.
+  if echo "$usage_data" | jq -e '.five_hour.utilization != null' >/dev/null 2>&1; then
+    five_hour_pct=$(echo "$usage_data" | jq -r '.five_hour.utilization' | awk '{printf "%.0f", $1}')
+    five_hour_reset_iso=$(echo "$usage_data" | jq -r '.five_hour.resets_at // empty')
+    five_hour_reset=$(format_reset_time "$five_hour_reset_iso" "time")
+    five_hour_bar=$(build_bar "$five_hour_pct" "$bar_width")
 
-  # current: <bar> % ↺time
-  col1_reset_suffix=""
-  [ -n "$five_hour_reset" ] && col1_reset_suffix=" ${dim}↺ ${five_hour_reset}${reset}"
-  col1="${white}5h:${reset} ${five_hour_bar} ${cyan}${five_hour_pct}%${reset}${col1_reset_suffix}"
+    # current: <bar> % ↺time
+    col1_reset_suffix=""
+    [ -n "$five_hour_reset" ] && col1_reset_suffix=" ${dim}↺ ${five_hour_reset}${reset}"
+    col1="${white}5h:${reset} ${five_hour_bar} ${cyan}${five_hour_pct}%${reset}${col1_reset_suffix}"
+  else
+    col1=""
+  fi
 
   # -- 7-day (weekly) window --
   seven_day_pct=$(echo "$usage_data" | jq -r '.seven_day.utilization // 0' | awk '{printf "%.0f", $1}')
@@ -312,6 +318,17 @@ if [ -n "$usage_data" ] && echo "$usage_data" | jq -e . >/dev/null 2>&1; then
   [ -n "$seven_day_reset" ] && col2_reset_suffix=" ${dim}↺ ${seven_day_reset}${reset}"
   col2="${white}weekly:${reset} ${seven_day_bar} ${cyan}${seven_day_pct}%${reset}${col2_reset_suffix}"
 
+  # -- Model-scoped weekly cap (Fable: up to 50% of weekly, Oct 2026) --
+  scoped=$(echo "$usage_data" | jq -r '
+    [.limits[]? | select(.kind == "weekly_scoped")
+      | "\((.scope.model.display_name // "scoped") | ascii_downcase)\t\(.percent // 0)"] | .[]' 2>/dev/null)
+  col_scoped=""
+  while IFS=$'\t' read -r sname spct; do
+    [ -z "$sname" ] && continue
+    spct=$(printf '%.0f' "$spct")
+    col_scoped+="${sep}${white}${sname}:${reset} $(build_bar "$spct" 5) ${cyan}${spct}%${reset}"
+  done <<< "$scoped"
+
   # -- Extra usage (optional) --
   col3=""
   extra_enabled=$(echo "$usage_data" | jq -r '.extra_usage.is_enabled // false')
@@ -322,11 +339,14 @@ if [ -n "$usage_data" ] && echo "$usage_data" | jq -e . >/dev/null 2>&1; then
     extra_reset=$(date -d "$(date +%Y-%m-15) +1 month" +"%b 1" 2>/dev/null \
                   || date -v+1m -v1d +"%b %-d" 2>/dev/null)
     extra_reset=$(printf '%s' "$extra_reset" | tr '[:upper:]' '[:lower:]')
-    col3="${white}extra:${reset} ${cyan}\$${extra_used}/\$${extra_limit}${reset}"
+    extra_ccy=$(echo "$usage_data" | jq -r '.extra_usage.currency // "USD"')
+    case "$extra_ccy" in GBP) sym='£' ;; EUR) sym='€' ;; *) sym='$' ;; esac
+    col3="${white}extra:${reset} ${cyan}${sym}${extra_used}/${sym}${extra_limit}${reset}"
     [ -n "$extra_reset" ] && col3+=" ${dim}↺ ${extra_reset}${reset}"
   fi
 
-  line2="${col1}${sep}${col2}"
+  if [ -n "$col1" ]; then line2="${col1}${sep}${col2}"; else line2="${col2}"; fi
+  line2+="${col_scoped}"
   [ -n "$col3" ] && line2+="${sep}${col3}"
 
   # Flag visibly when we're serving cached data the API refused to refresh
@@ -336,7 +356,7 @@ if [ -n "$usage_data" ] && echo "$usage_data" | jq -e . >/dev/null 2>&1; then
 else
   # No usable usage data (rate-limited, offline, no token). Say so rather than
   # rendering a fake 0% — but still emit a line so the row never vanishes.
-  line2="${dim}5h: — | weekly: — (usage api unavailable)${reset}"
+  line2="${dim}weekly: — (usage api unavailable)${reset}"
 fi
 
 # ── Output ────────────────────────────────────────────────────────────────────
