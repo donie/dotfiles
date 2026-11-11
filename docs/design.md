@@ -113,7 +113,7 @@ the inputs change.
 | Python CLI tools | mise `pipx:` backend (runs on uv) | gallery-dl, instaloader |
 | Python projects | uv | |
 | Optional apps | `Brewfile.extras`, installed by hand per Mac | orbstack, lunar |
-| Self-updating or beta apps | manual, listed in `docs/macos-manual.md` | agent CLIs, Rex, BBDown |
+| Self-updating or beta apps | manual, listed in `docs/macos-manual.md` | agent CLIs, Rex |
 
 The mise config is plain TOML split by role, gated in `.chezmoiignore`:
 `config.toml` (core, every role), `conf.d/dev.toml` (every role except
@@ -137,8 +137,10 @@ Exceptions and gotchas:
   stops it from pointing `GOBIN` at the current Go version's directory, where
   installed commands would disappear on every Go upgrade. Go tools worth
   tracking go in the mise config with the `go:` backend.
-- BBDown stays a manual binary in `~/_runtime/bin`, because it reads its
-  config and login data from the directory its binary is in.
+- BBDown reads its config and login cookie from the directory its binary
+  is in, which mise replaces on every upgrade. Both live in
+  `~/.config/BBDown/` (the config from this repo, the cookie local), and a
+  mise `postinstall` hook links them into each new install.
 
 ## Secrets
 

@@ -4,3 +4,17 @@
 "pipx:gallery-dl" = "latest"
 "pipx:instaloader" = "latest"
 "pipx:f2" = "latest"
+
+# BBDown reads BBDown.config and its login cookie (BBDown.data) from the
+# directory its binary is in. Link both from ~/.config/BBDown into every new
+# install so upgrades keep them. BBDown.config is in this repo; BBDown.data is
+# local and secret, created by `BBDown login`.
+[tools."github:nilaoda/BBDown"]
+version = "latest"
+postinstall = '''
+chmod +x "$MISE_TOOL_INSTALL_PATH/BBDown"  # the release zip drops the mode bit
+mkdir -p "$HOME/.config/BBDown"
+for f in BBDown.config BBDown.data; do
+    ln -sfn "$HOME/.config/BBDown/$f" "$MISE_TOOL_INSTALL_PATH/$f"
+done
+'''
