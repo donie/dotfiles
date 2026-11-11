@@ -1,0 +1,21 @@
+{{- if and (eq .chezmoi.os "darwin") (hasKey . "hostname") -}}
+#!/bin/sh
+# Keep all three macOS machine names equal to the hostname chosen at
+# `chezmoi init`. macOS renames LocalHostName (e.g. to name-2) when it sees a
+# clash on the network; this puts it back. No-op when the names match.
+set -u
+want={{ .hostname | quote }}
+fix=""
+for name in ComputerName LocalHostName HostName; do
+    [ "$(scutil --get "$name" 2>/dev/null)" = "$want" ] || fix="$fix $name"
+done
+[ -n "$fix" ] || exit 0
+
+if sudo -n true 2>/dev/null || [ -t 0 ]; then
+    for name in $fix; do
+        sudo scutil --set "$name" "$want" && echo "set $name to $want"
+    done
+else
+    echo "warning: hostname differs ($fix ); rerun ./install in a terminal to set it to $want" >&2
+fi
+{{ end -}}

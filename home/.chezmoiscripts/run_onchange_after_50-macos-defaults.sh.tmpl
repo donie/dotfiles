@@ -1,0 +1,72 @@
+{{- if eq .chezmoi.os "darwin" -}}
+#!/bin/sh
+# macOS settings that differ from the defaults, found on macOS 27 by diffing
+# `defaults read` snapshots (docs/design.md#macos-settings). Idempotent; reruns
+# whenever this file changes. Settings that can't be scripted are in
+# docs/macos-manual.md. Comments name the System Settings control.
+set -eu
+
+# ----------------------------------------------------------- keyboard & input
+# Keyboard > Key repeat instead of the accent menu when holding a key (all apps)
+defaults write -g ApplePressAndHoldEnabled -bool false
+# Language & Region > List sort order: Chinese Pinyin
+defaults write -g AppleCollationOrder -string "zh@collation=pinyin"
+
+# Keyboard > Keyboard Shortcuts: free ⌘Space for Raycast and ⌘⇧3/4/5 for Shottr.
+# Spotlight (64) and screenshots (28-31 to file/clipboard, 184 options) off.
+hotkey_off() { # id key keycode modifiers
+    defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add "$1" \
+        "<dict><key>enabled</key><false/><key>value</key><dict><key>type</key><string>standard</string><key>parameters</key><array><integer>$2</integer><integer>$3</integer><integer>$4</integer></array></dict></dict>"
+}
+hotkey_off 64 32 49 1048576   # Show Spotlight search: ⌘Space
+hotkey_off 28 51 20 1179648   # Save picture of screen as a file: ⌘⇧3
+hotkey_off 29 51 20 1441792   # Copy picture of screen to the clipboard: ⌃⌘⇧3
+hotkey_off 30 52 21 1179648   # Save picture of selected area as a file: ⌘⇧4
+hotkey_off 31 52 21 1441792   # Copy picture of selected area to the clipboard: ⌃⌘⇧4
+hotkey_off 184 53 23 1179648  # Screenshot and recording options: ⌘⇧5
+
+# ------------------------------------------------------------ trackpad & mouse
+for domain in com.apple.AppleMultitouchTrackpad com.apple.driver.AppleBluetoothMultitouch.trackpad; do
+    defaults write "$domain" Clicking -bool true    # Tap to click
+    defaults write "$domain" Dragging -bool true    # Accessibility > Pointer Control > dragging (without drag lock)
+    defaults write "$domain" DragLock -bool false
+done
+defaults write -g com.apple.trackpad.forceClick -bool false   # Force Click and haptic feedback: off
+defaults write -g com.apple.mouse.scaling -float 0.6875       # Mouse > Tracking speed
+
+# ------------------------------------------------------------------------ Dock
+defaults write com.apple.dock orientation -string left
+defaults write com.apple.dock tilesize -float 65
+defaults write com.apple.dock mineffect -string scale
+defaults write com.apple.dock minimize-to-application -bool true
+defaults write com.apple.dock show-recents -bool false
+# Hot Corners: bottom left starts the screen saver, bottom right does nothing
+# (instead of Quick Note).
+defaults write com.apple.dock wvous-bl-corner -int 5
+defaults write com.apple.dock wvous-bl-modifier -int 0
+defaults write com.apple.dock wvous-br-corner -int 1
+defaults write com.apple.dock wvous-br-modifier -int 0
+
+# ---------------------------------------------------------- Desktop & windows
+defaults write -g AppleShowScrollBars -string WhenScrolling     # Appearance > Show scroll bars
+defaults write -g NSQuitAlwaysKeepsWindows -bool true           # Close windows when quitting an app: off
+defaults write com.apple.WindowManager EnableStandardClickToShowDesktop -bool false  # Click wallpaper to reveal desktop: only in Stage Manager
+defaults write com.apple.WindowManager EnableTiledWindowMargins -bool false         # Tiled windows have margins: off
+defaults write com.apple.WindowManager HideDesktop -bool true                       # Show items on Desktop: off
+defaults write com.apple.WindowManager StandardHideWidgets -bool true               # Show widgets on Desktop: off
+
+# ---------------------------------------------------------------------- Finder
+defaults write com.apple.finder FXPreferredViewStyle -string clmv   # Column view
+defaults write com.apple.finder FXPreferredGroupBy -string Kind
+defaults write com.apple.finder ShowStatusBar -bool true
+defaults write com.apple.finder NewWindowTarget -string PfLo        # New windows open Downloads
+defaults write com.apple.finder NewWindowTargetPath -string "file://$HOME/Downloads/"
+defaults write com.apple.desktopservices DSDontWriteNetworkStores -bool true  # no .DS_Store on network volumes
+
+# ---------------------------------------------------------------------- apply
+/System/Library/PrivateFrameworks/SystemAdministration.framework/Resources/activateSettings -u 2>/dev/null || true
+for app in Dock Finder SystemUIServer; do
+    killall "$app" 2>/dev/null || true
+done
+echo "macOS settings applied; some (trackpad, keyboard shortcuts) take effect after logging out"
+{{ end -}}

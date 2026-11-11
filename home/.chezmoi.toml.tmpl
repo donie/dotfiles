@@ -1,6 +1,10 @@
 {{- /* Generates ~/.config/chezmoi/chezmoi.toml on `chezmoi init`. */ -}}
 {{- $roles := list "mac-personal" "mac-work" "devbox" "server" -}}
 {{- $role := promptChoiceOnce . "role" "Machine role" $roles -}}
+{{- $hostname := "" -}}
+{{- if eq .chezmoi.os "darwin" -}}
+{{-   $hostname = promptStringOnce . "hostname" "Hostname" (.chezmoi.hostname | lower) -}}
+{{- end -}}
 # The repo root. Source state lives under home/ (see .chezmoiroot).
 sourceDir = {{ .chezmoi.workingTree | quote }}
 # Plain files become symlinks into the repo, so edits land in Git directly.
@@ -9,3 +13,7 @@ mode = "symlink"
 
 [data]
     role = {{ $role | quote }}
+{{- if $hostname }}
+    # macOS ComputerName, LocalHostName and HostName (run_after_45-hostname).
+    hostname = {{ $hostname | quote }}
+{{- end }}
