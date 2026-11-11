@@ -1,0 +1,20 @@
+# Work Mac only (role mac-work), on top of the shared Brewfile.
+# Entries also in Brewfile.personal are repeated here on purpose, so each
+# role's list stays complete on its own.
+
+# mpv and its build toolchain (bin script build-mpv)
+brew "mpv"
+brew "cmake"
+brew "meson"
+brew "pkgconf"
+brew "dylibbundler"
+brew "luajit-openresty"
+
+cask "screenkite"
+cask "google-drive"
+
+mas "SenPlayer", id: 6443975850
+mas "Just Press Record", id: 1033342465
+mas "Reeder", id: 1529448980
+mas "Welly", id: 1521402269
+mas "WhatsApp", id: 310633997

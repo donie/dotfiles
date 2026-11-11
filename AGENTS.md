@@ -38,7 +38,7 @@ This repository is a **public** dotfiles repo managed by [chezmoi](https://www.c
 │   ├── dot_gitconfig dot_tmux.conf dot_vimrc dot_vim/
 │   ├── _runtime/bin/       # Personal scripts → ~/_runtime/bin
 │   └── private_Library/    # Sublime Text User link (macOS)
-├── packages/               # Brewfile (shared), Brewfile.personal, Brewfile.extras (manual)
+├── packages/               # Brewfile (shared), Brewfile.personal, Brewfile.work, Brewfile.extras (manual)
 ├── agents/                 # Agent tooling: sync scripts, skills manifest, repo-local skills
 ├── nvim/ mpv/ rex/         # Whole-directory configs (linked from home/)
 ├── shell/                  # bash (Linux, not yet managed), kitty (linked from home/)
@@ -70,7 +70,7 @@ This repository is a **public** dotfiles repo managed by [chezmoi](https://www.c
 
 ## Packages
 
-- **Homebrew** (macOS only): what must be native: casks, App Store apps, fonts, GNU userland, shells, build toolchains. `packages/Brewfile` is shared by both Macs, `Brewfile.personal` adds personal apps, `Brewfile.extras` is never installed automatically. The install script never upgrades or removes anything.
+- **Homebrew** (macOS only): what must be native: casks, App Store apps, fonts, GNU userland, shells, build toolchains. `packages/Brewfile` is shared by both Macs, `Brewfile.personal` and `Brewfile.work` add per-role apps, `Brewfile.extras` is never installed automatically. The install script never upgrades or removes anything.
 - **mise** (every OS): portable CLI tools and language runtimes. `home/dot_config/mise/config.toml` is the core set (every role); `conf.d/dev.toml` (not on servers) and `conf.d/personal.toml` (mac-personal) are gated in `.chezmoiignore`. Use `os = ["macos"]` / `["linux"]` per tool for OS-specific entries.
 - Add a CLI tool to mise, not Homebrew, unless it has no mise build for the OS (e.g. `btop` on macOS) or must be a real system binary.
 - Config that shells out to mise tools from non-interactive contexts must use the shims (`$HOME/.local/share/mise/shims/<tool>`), as `home/dot_gitconfig` does for `delta` and `gh`.

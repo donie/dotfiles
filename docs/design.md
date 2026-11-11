@@ -94,6 +94,7 @@ nvim/  mpv/  rex/  shell/kitty/  sublime/   # app-written dirs, linked whole
 packages/
   Brewfile                # shared (both Macs)
   Brewfile.personal       # mac-personal
+  Brewfile.work           # mac-work
   Brewfile.extras         # optional, never installed automatically
   apt.txt  pacman.txt
 ```
@@ -231,9 +232,8 @@ merging.
    linked whole with `symlink_` entries. Repo-local agent skills are linked
    by a script, because each goes to three agents. Update `AGENTS.md` and `agents/bin/sync-*`.
 4. **Packages.** Public Brewfiles, the mise config and Linux package lists.
-   *Done for macOS;* Linux package lists move to phase 6. The work Mac starts
-   from the shared Brewfile only; a `Brewfile.work` is written when it's next
-   set up.
+   *Done for macOS;* Linux package lists move to phase 6. `Brewfile.work`
+   started from a subset of `Brewfile.personal`.
    Remove version-manager setup from the shells and hardcoded Homebrew
    paths.
 5. **macOS.** Settings script and the manual checklist. *Done.*

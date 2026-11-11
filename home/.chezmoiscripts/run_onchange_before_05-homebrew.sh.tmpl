@@ -2,11 +2,13 @@
 {{- $repo := .chezmoi.workingTree -}}
 #!/bin/sh
 # Install the Homebrew packages in packages/Brewfile, plus Brewfile.personal on
-# mac-personal. Never upgrades or removes anything; `brew cu` and `brew upgrade`
+# mac-personal or Brewfile.work on mac-work. Never upgrades or removes anything; `brew cu` and `brew upgrade`
 # stay manual. Reruns whenever a Brewfile changes:
 # Brewfile sha256: {{ include (joinPath $repo "packages/Brewfile") | sha256sum }}
 {{- if eq .role "mac-personal" }}
 # Brewfile.personal sha256: {{ include (joinPath $repo "packages/Brewfile.personal") | sha256sum }}
+{{- else if eq .role "mac-work" }}
+# Brewfile.work sha256: {{ include (joinPath $repo "packages/Brewfile.work") | sha256sum }}
 {{- end }}
 set -u
 brew=/opt/homebrew/bin/brew
@@ -23,5 +25,7 @@ bundle() {
 bundle {{ joinPath $repo "packages/Brewfile" | quote }}
 {{- if eq .role "mac-personal" }}
 bundle {{ joinPath $repo "packages/Brewfile.personal" | quote }}
+{{- else if eq .role "mac-work" }}
+bundle {{ joinPath $repo "packages/Brewfile.work" | quote }}
 {{- end }}
 {{ end -}}
