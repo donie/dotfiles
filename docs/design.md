@@ -1,6 +1,6 @@
 # Dotfiles redesign
 
-Status: **in progress**. Phases 1–4 are done, phase 4 on macOS only (see [Migration plan](#migration-plan));
+Status: **in progress**. Phases 1–5 are done, phase 4 on macOS only (see [Migration plan](#migration-plan));
 dotbot is gone and chezmoi manages everything. `AGENTS.md` describes the
 current state.
 
@@ -87,7 +87,8 @@ nvim/  mpv/  rex/  shell/kitty/  sublime/   # app-written dirs, linked whole
     run_onchange_after_15-mise-tools.sh.tmpl         # mise install; reruns when the mise config changes
     run_onchange_before_10-packages-linux.sh.tmpl    # apt or pacman, minimal
     run_onchange_after_20-mise.sh.tmpl               # mise install
-    run_onchange_after_30-macos-defaults.sh.tmpl
+    run_after_45-hostname.sh.tmpl                    # macOS machine names, from the init prompt
+    run_onchange_after_50-macos-defaults.sh.tmpl     # macOS settings
     run_after_40-fonts.sh.tmpl                       # copy licensed fonts from cloud storage, if present
     run_after_90-login-shell.sh.tmpl                 # chsh only if not already set
 packages/
@@ -172,10 +173,16 @@ is picked up on the next apply.
 
 ## macOS settings
 
-- `run_onchange_after_30-macos-defaults.sh` holds idempotent
-  `defaults write`, `scutil` and `PlistBuddy` calls, grouped by area and with
-  a dry-run flag. It restarts affected processes (Dock, Finder,
-  SystemUIServer) at the end.
+- `run_onchange_after_50-macos-defaults.sh.tmpl` holds idempotent
+  `defaults write` calls, grouped by System Settings area and commented with
+  the control's name. It reloads settings (`activateSettings -u`) and
+  restarts Dock, Finder and SystemUIServer. Only settings that differ from
+  the macOS defaults are listed; the snapshot of this Mac on macOS 27 had
+  few, which keeps the script short.
+- `run_after_45-hostname.sh.tmpl` keeps ComputerName, LocalHostName and
+  HostName equal to the `hostname` asked for at `chezmoi init`. It's a
+  `run_after_` script so it also repairs macOS's automatic renames
+  (`name-2`); it needs sudo, and skips with a warning when it can't ask.
 - **Find keys on the current macOS version, don't copy them from old
   notes.** Snapshot `defaults read`, change the setting in System Settings,
   snapshot again, and diff.
@@ -229,7 +236,7 @@ merging.
    set up.
    Remove version-manager setup from the shells and hardcoded Homebrew
    paths.
-5. **macOS.** Settings script and the manual checklist.
+5. **macOS.** Settings script and the manual checklist. *Done.*
 6. **Linux.** Templated bashrc on the devbox, then server, then Arch.
    First, confirm the pilot on Debian: `chezmoi init --apply` with role
    `server` installs `.gitconfig` and skips fish and gallery-dl.

@@ -8,7 +8,7 @@ This repository is a **public** dotfiles repo managed by [chezmoi](https://www.c
 
 ### How it installs
 - Entry point: `./install`, a thin wrapper. On first run it calls `chezmoi init --source <repo>`, which asks for the machine role, then it runs `chezmoi apply` (extra arguments are passed through, e.g. `./install --dry-run --verbose`).
-- Machine roles: `mac-personal`, `mac-work`, `devbox`, `server`. Non-interactive init: `chezmoi init --source <repo> --promptChoice "Machine role=<role>"` (the key is the prompt text).
+- Machine roles: `mac-personal`, `mac-work`, `devbox`, `server`. Non-interactive init: `chezmoi init --source <repo> --promptChoice "Machine role=<role>" --promptString "Hostname=<name>"` (the key is the prompt text; the hostname is asked on macOS only).
 - `.chezmoiroot` points chezmoi at `home/`, the source state. Everything else at the repo root is supporting material.
 - chezmoi runs in **symlink mode**: plain files in `home/` become symlinks into the repo, so edits through `~` land in Git. Templates (`*.tmpl`), `private_` and `encrypted_` files are rendered copies; edit those in `home/` and run `chezmoi apply`.
 - Configs whose apps write new files into their directory (nvim, mpv, kitty, rex, Sublime `User`) stay as top-level directories and are linked as whole directories by `symlink_*.tmpl` entries in `home/`.
@@ -33,7 +33,7 @@ This repository is a **public** dotfiles repo managed by [chezmoi](https://www.c
 ├── home/                   # chezmoi source state (mirrors ~)
 │   ├── .chezmoi.toml.tmpl  # Role prompt, symlink mode
 │   ├── .chezmoiignore      # Per-OS / per-role exclusions
-│   ├── .chezmoiscripts/    # brew bundle, mise install, fisher plugins, agent skills, vim plugins, fonts, login shell
+│   ├── .chezmoiscripts/    # brew bundle, mise install, fisher plugins, agent skills, vim plugins, fonts, hostname, macOS settings, login shell
 │   ├── dot_config/         # fish, ghostty, mise; symlink_ entries for nvim, mpv, kitty, rex
 │   ├── dot_claude/ dot_codex/ dot_pi/   # Coding agent configs
 │   ├── dot_gitconfig dot_tmux.conf dot_vimrc dot_vim/
