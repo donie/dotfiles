@@ -178,7 +178,8 @@ merging.
    config, and backup and old files. Vim stays as is, next to nvim.
    *Done.*
 2. **Pilot.** Bring git, fish and one secret-bearing template under chezmoi
-   in symlink mode. Validate on a throwaway Linux VM and on this Mac.
+   in symlink mode. Validate on this Mac. *Done;* the Linux check moved to
+   phase 6.
    *git and fish done:* `~/.config/fish` is now a real directory with
    per-file symlinks, so fisher plugin files stay local and are no longer
    tracked. They're installed by a `run_onchange_` script keyed on
@@ -191,6 +192,8 @@ merging.
    paths.
 5. **macOS.** Settings script and the manual checklist.
 6. **Linux.** Templated bashrc on the devbox, then server, then Arch.
+   First, confirm the pilot on Debian: `chezmoi init --apply` with role
+   `server` installs `.gitconfig` and skips fish and gallery-dl.
 7. **Retire the private submodule**, once D3 and D4 cover everything it
    held.
 8. **CI (optional).** Debian and Arch containers run
