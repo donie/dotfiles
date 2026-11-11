@@ -1,6 +1,7 @@
 # macOS: manual steps
 
-What `./install` can't do on a new Mac. Scripted settings are in
+What `./install` can't do on a new Mac. Day-to-day updates and
+troubleshooting are in `usage.md`. Scripted settings are in
 `home/.chezmoiscripts/run_onchange_after_50-macos-defaults.sh.tmpl`; this is
 everything else.
 
@@ -33,7 +34,9 @@ everything else.
       from mise, but logging in is manual. `.gitconfig` uses `gh` as git's
       credential helper for github.com, so pushing over HTTPS needs it;
       cloning and pulling public repos don't. The token is stored in the
-      macOS Keychain.
+      macOS Keychain. Not automated on purpose: the browser login creates a
+      token per machine that can be revoked on its own, while a token kept in
+      the vault would be one long-lived token shared by every machine.
 - [ ] Raycast: set its hotkey to ⌘Space (the script frees it from
       Spotlight). Shottr: set ⌘⇧3/4/5 the same way.
 - [ ] `BBDown login` (mac-personal): the login cookie is local only, in
@@ -78,17 +81,55 @@ For a Mac that still has the dotbot-based checkout of this repo.
    the old submodule directories behind.
 2. mac-personal only: unlock the password manager CLI (see "Before
    `./install`"); `~/.gallery-dl.conf` is created from the vault.
-3. `./install` in a terminal. Before applying, a one-time script
+3. Optional preview of what Homebrew would install:
+   `cat ~/dotfiles/packages/Brewfile ~/dotfiles/packages/Brewfile.<personal|work> | brew bundle check --verbose --file=-`.
+   Apps that are already there but were installed outside Homebrew or the
+   App Store show up as missing, and their entries would fail ("already an
+   App at …"); adopt or drop them first (see `usage.md`, Troubleshooting).
+4. `./install` in a terminal. Before applying, a one-time script
    (`run_once_before_00-retire-dotbot-links.sh.tmpl`) removes the old dotbot
    links that are dead or point into `dotbot`/`dotfiles-private`, and turns a
    symlinked `~/.config/fish` into a real directory, keeping
    `fish_variables`. Homebrew then installs whatever the Brewfiles list that's
    missing, which can take a while.
-4. Delete the leftovers: `rm -rf ~/dotfiles/dotbot ~/dotfiles/dotfiles-private
+5. Delete the leftovers: `rm -rf ~/dotfiles/dotbot ~/dotfiles/dotfiles-private
    ~/dotfiles/.git/modules`. Untracked leftovers of moved configs (for example
    `~/dotfiles/shell/fish`) show in `git status --ignored` and can go too.
-5. Optional cleanup of what mise now provides:
+6. Optional cleanup of what mise now provides:
    - `cat ~/dotfiles/packages/Brewfile* | brew bundle cleanup --file=-` lists
      Homebrew packages that aren't in any Brewfile; add `--force` to remove
      them.
    - Remove old version managers: `rm -rf ~/.nvm ~/.rbenv`.
+
+### Verifying the migration
+
+```fish
+# 1. The cleanup script ran (one line with a timestamp)
+chezmoi state get-bucket --bucket=scriptState | jq -r '.[] | "\(.runAt)  \(.name)"' | grep retire
+
+# 2. No dead links, and none into dotbot/dotfiles-private (prints only "done")
+set dirs ~ ~/.config ~/.config/fish ~/.config/fish/conf.d
+set -a dirs ~/.config/fish/functions ~/.config/fish/completions ~/.config/ghostty
+set -a dirs ~/.claude ~/.claude/skills ~/.codex ~/.codex/skills
+set -a dirs ~/.pi/agent ~/.pi/agent/skills ~/.pi/agent/extensions
+set -a dirs ~/.vim/autoload ~/_runtime ~/_runtime/bin
+for d in $dirs
+    for l in (find $d -maxdepth 1 -type l 2>/dev/null)
+        set t (readlink $l)
+        if not test -e $l; or string match -q -r "dotbot/|dotfiles-private/" -- $t
+            echo "$l -> $t"
+        end
+    end
+end
+echo done
+
+# 3. ~/.config/fish is a real directory, and fish_variables survived
+test -L ~/.config/fish; and echo "still a symlink"; or echo "real directory"
+ls ~/.config/fish/fish_variables
+
+# 4. Every managed file matches the repo
+chezmoi verify --exclude scripts; and echo OK
+```
+
+The first `./install` also prints one `removed old dotbot link: …` line per
+link it removed.

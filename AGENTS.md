@@ -44,7 +44,7 @@ This repository is a **public** dotfiles repo managed by [chezmoi](https://www.c
 ├── shell/                  # bash (Linux, not yet managed), kitty (linked from home/)
 ├── sublime/                # Sublime Text User package (linked from home/)
 ├── tmux/shared.sh          # Unreferenced helper, kept for now
-└── docs/                   # design.md, macos-manual.md
+└── docs/                   # design.md, macos-manual.md, usage.md (updates, upkeep, troubleshooting)
 ```
 
 ---
@@ -103,6 +103,9 @@ fisher plugin files are not tracked: `home/dot_config/private_fish/fish_plugins`
 ### Removing a config
 1. Delete it from `home/` (and its root directory, if any).
 2. Remove the target in `~` by hand, or list it in `home/.chezmoiremove`.
+
+### Keeping the docs current
+When you explain to the user how something behaves, why it's done a certain way, or how to recover from a failure, and that isn't written down yet, add it to the docs in the same change: `docs/usage.md` (updates, upkeep, troubleshooting), `docs/macos-manual.md` (setup and migration steps) or `docs/design.md` (decisions and rationale).
 
 ---
 
