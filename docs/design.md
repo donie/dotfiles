@@ -74,7 +74,7 @@ home/                     # chezmoi source state
   .chezmoiignore          # templated: drops layers by role and OS
   .chezmoidata/           # shared data, e.g. alias definitions used by fish and bash
   dot_config/
-    fish/                 # macOS
+    private_fish/         # macOS; private_ keeps fish's 0700 directory mode
     nvim/  tmux/  mise/  git/  ...
   dot_bashrc.tmpl         # Linux
   .chezmoiscripts/
@@ -104,7 +104,7 @@ the inputs change.
 | Language runtimes | mise (`dev` set) | node, go, ruby, bun |
 | Portable CLI tools | mise (`core` set, aqua or ubi backends) | rg, fd, bat, eza, fzf, delta, jq, gh, nvim |
 | Python tooling | uv | |
-| Prebuilt third-party binaries currently committed to `bin/` | mise github or ubi backend | |
+| Prebuilt third-party binaries currently committed to `bin/` | mise github or ubi backend | BBDown (then delete `bin/BBDown`) |
 
 The mise config is a template. The `core` set is installed on every role,
 and `dev` is added on every role except `server`. This replaces nvm, rbenv
@@ -118,8 +118,15 @@ and other per-language version managers.
   The repo holds only the file's structure.
 - `.chezmoiignore` excludes them on roles that don't need them, so those
   machines never need vault access.
-- Rendering requires an unlocked vault session. Edit these files through
-  `chezmoi edit`, not in place.
+- Secret-bearing files use the `create_` prefix, as in
+  `home/create_private_dot_gallery-dl.conf.tmpl`. chezmoi renders them only
+  when the target doesn't exist, so the vault is read once per machine and
+  everyday `apply`, `status` and `diff` runs never need an unlocked vault.
+  The `private_` prefix makes the file `0600`.
+- Trade-off: later changes to the template don't reach existing machines. To
+  re-render, unlock the vault, delete the target and run `chezmoi apply`.
+  The rendered file is a copy, so local edits don't flow back to the repo;
+  edit the template in `home/` instead.
 - Never commit literal credentials. Existing guidance in `install.conf.yaml`
   about `"$ENV_VAR"` and `"!command"` credential sources carries over.
 
@@ -153,6 +160,8 @@ macOS:
 3. Log in to the vault CLI.
 4. `chezmoi init --apply <github-user>`: clones over HTTPS without
    credentials, prompts for the role, links configs and runs the scripts.
+   Non-interactive: add `--promptChoice "Machine role=<role>"`. The key is
+   the prompt text, not the data key.
 5. Work through `docs/macos-manual.md`.
 6. Optionally, `gh auth login`. This is only needed to push.
 
@@ -167,20 +176,24 @@ merging.
 
 1. **Prune.** Remove zsh and its prompt framework, the unused WezTerm
    config, and backup and old files. Vim stays as is, next to nvim.
-   Fisher-generated plugin files wait for phase 3: `~/.config/fish/functions`
-   is a directory symlink into the repo, so fisher would write them straight
-   back.
+   *Done.*
 2. **Pilot.** Bring git, fish and one secret-bearing template under chezmoi
-   in symlink mode. Validate on a throwaway Linux VM and on this Mac.
+   in symlink mode. Validate on this Mac. *Done;* the Linux check moved to
+   phase 6.
+   *git and fish done:* `~/.config/fish` is now a real directory with
+   per-file symlinks, so fisher plugin files stay local and are no longer
+   tracked. They're installed by a `run_onchange_` script keyed on
+   `fish_plugins`.
 3. **Configs.** Move the remaining configs. Delete `install`,
    `install.conf.yaml` and the dotbot submodule once nothing depends on
-   them. Stop tracking fisher-generated files; install them from
-   `fish_plugins`. Update `AGENTS.md` and `agents/bin/sync-*`.
+   them. Update `AGENTS.md` and `agents/bin/sync-*`.
 4. **Packages.** Public Brewfiles, the mise config and Linux package lists.
    Remove version-manager setup from the shells and hardcoded Homebrew
    paths.
 5. **macOS.** Settings script and the manual checklist.
 6. **Linux.** Templated bashrc on the devbox, then server, then Arch.
+   First, confirm the pilot on Debian: `chezmoi init --apply` with role
+   `server` installs `.gitconfig` and skips fish and gallery-dl.
 7. **Retire the private submodule**, once D3 and D4 cover everything it
    held.
 8. **CI (optional).** Debian and Arch containers run

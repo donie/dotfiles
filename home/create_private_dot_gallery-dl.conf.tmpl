@@ -1,0 +1,99 @@
+{{- /* Secrets come from the password manager; see docs/design.md#secrets. */ -}}
+{{- $gdl := bitwardenFields "item" "gallery-dl" -}}
+{
+    "extractor":
+    {
+        "archive": "~/_runtime/python/gallery-dl/archive-temp.sqlite3",
+        "parent-directory": true,
+        "skip": true,
+        "retries": 3,
+        "timeout": 6.0,
+
+        "flickr":
+        {
+            "access-token": {{ $gdl.flickr_access_token.value | toJson }},
+            "access-token-secret": {{ $gdl.flickr_access_token_secret.value | toJson }},
+            "size-max": 1920
+        },
+
+        "reddit":
+        {
+            "morecomments": true,
+            "date-min": "2017-01",
+            "date-format": "%Y-%m",
+            "recursion": 1
+        },
+
+        "twitter":
+        {
+            "username": {{ $gdl.twitter_username.value | toJson }},
+            "password": {{ $gdl.twitter_password.value | toJson }},
+            "filename": "{filename}.{extension}"
+        },
+
+        "weibo":
+        {
+            "filename": "{status[date]:Olocal/%Y%m%d-%H%M%S}_{filename}.{extension}"
+        },
+
+
+        "replace invalid path characters with unicode alternatives": null,
+        "path-restrict": {
+            "\\": "⧹",
+            "/" : "⧸",
+            "|" : "￨",
+            ":" : "꞉",
+            "*" : "∗",
+            "?" : "？",
+            "\"": "″",
+            "<" : "﹤",
+            ">" : "﹥"
+        }
+    },
+
+    "downloader":
+    {
+        "mtime": true,
+        "retries": 3,
+        "timeout": 6.0,
+
+        "ytdl":
+        {
+            "format": null,
+            "forward-cookies": false,
+            "logging": true,
+            "module": "yt-dlp",
+            "outtmpl": null,
+            "raw-options": null
+        }
+    },
+
+    "output":
+    {
+        "mode": "terminal",
+        "log": {
+            "level": "info",
+            "format": {
+                "debug"  : "\u001b[0;37m{name}: {message}\u001b[0m",
+                "info"   : "\u001b[1;37m{name}: {message}\u001b[0m",
+                "warning": "\u001b[1;33m{name}: {message}\u001b[0m",
+                "error"  : "\u001b[1;31m{name}: {message}\u001b[0m"
+            }
+        },
+        "logfile": {
+            "path": "~/_runtime/python/gallery-dl/log.txt",
+            "mode": "w",
+            "level": "debug"
+        },
+        "unsupportedfile": {
+            "path": "~/_runtime/python/gallery-dl/unsupported.txt",
+            "mode": "a",
+            "format": "{asctime} {message}",
+            "format-date": "%Y-%m-%d-%H-%M-%S"
+        }
+    },
+
+    "cache": {
+        "file": "~/_runtime/python/gallery-dl/cache.sqlite3"
+    }
+}

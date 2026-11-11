@@ -130,3 +130,7 @@ status --is-interactive; and rbenv init - fish | source
 # Added by LM Studio CLI (lms)
 set -gx PATH $PATH /Users/donie/.lmstudio/bin
 # End of LM Studio CLI section
+
+# Added by OrbStack: command-line tools and integration
+# This won't be added again if you remove it.
+source ~/.orbstack/shell/init2.fish 2>/dev/null || :

@@ -6,15 +6,9 @@
 - clean: ['~']
 
 - link:
-    ~/.config/fish/config.fish: shell/fish/config.fish
-    ~/.config/fish/conf.d: shell/fish/conf.d/
-    ~/.config/fish/functions: shell/fish/functions/
-    ~/.config/fish/completions: shell/fish/completions/
-    ~/.config/fish/fish_plugins: shell/fish/fish_plugins
+    # fish and git are managed by chezmoi (home/), see docs/design.md.
     ~/.config/kitty: shell/kitty/
     ~/.config/ghostty/config: shell/ghostty.config
-    ~/.gallery-dl.conf: dotfiles-private/gallery-dl.conf
-    ~/.gitconfig: shell/gitconfig
     ~/_runtime/Brewfile: dotfiles-private/brewfile
     ~/.tmux.conf: tmux/tmux.conf
     ~/.config/rex: rex/
@@ -49,7 +43,8 @@
     ~/.config/mpv:
       path: mpv/
       exclude: [ mpv/watch_later ]
-    ~/_runtime/bin/BBDown: bin/BBDown
+    # BBDown binary is unmanaged until mise installs it from GitHub releases
+    # (docs/design.md, phase 4); bin/BBDown is an outdated copy.
     ~/_runtime/bin/BBDown.config: bin/BBDown.config
     ~/_runtime/bin/code-shell: bin/code-shell
     ~/_runtime/bin/dall: bin/dall

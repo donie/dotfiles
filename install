@@ -13,3 +13,13 @@ git -C "${DOTBOT_DIR}" submodule sync --quiet --recursive
 git submodule update --init --recursive "${DOTBOT_DIR}"
 
 "${BASEDIR}/${DOTBOT_DIR}/${DOTBOT_BIN}" -d "${BASEDIR}" -c "${CONFIG}" "${@}"
+
+# Files migrated under home/ are managed by chezmoi (see docs/design.md).
+# Skipped when dotbot arguments are given, e.g. `./install --only link`.
+if [ $# -eq 0 ]; then
+  if command -v chezmoi >/dev/null 2>&1 && [ -f "${XDG_CONFIG_HOME:-$HOME/.config}/chezmoi/chezmoi.toml" ]; then
+    chezmoi apply
+  else
+    echo "chezmoi is not set up; run: chezmoi init --source \"${BASEDIR}\"" >&2
+  fi
+fi
