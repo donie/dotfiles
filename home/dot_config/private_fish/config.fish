@@ -89,7 +89,7 @@ set -gx EDITOR nvim
 # set PATH
 # Homebrew is set up in conf.d/00-homebrew.fish; mise is activated right after
 # it by Homebrew's vendor_conf.d/mise-activate.fish.
-fish_add_path $HOME/go/bin
+fish_add_path $HOME/go/bin  # `go install` target: Go default GOPATH (mise go.set_gobin = false)
 fish_add_path ~/_runtime/bin
 fish_add_path ~/.local/bin
 fish_add_path ~/.cargo/bin

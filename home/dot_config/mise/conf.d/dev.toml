@@ -20,3 +20,10 @@ codex = "latest"
 "npm:@slidev/cli" = "latest"
 "npm:defuddle" = "latest"
 xcodegen = { version = "latest", os = ["macos"] }
+
+[settings]
+# Use Go's defaults on every OS (GOPATH=~/go, `go install` → ~/go/bin, which the
+# shells add to PATH). By default mise points GOBIN at the active Go version's
+# directory, so `go install`ed commands would vanish on every Go upgrade.
+# Tools that should be tracked go in [tools] with the go: backend instead.
+go.set_gobin = false

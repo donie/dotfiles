@@ -132,6 +132,11 @@ Exceptions and gotchas:
   credential helper.
 - fish must load Homebrew before mise: `conf.d/00-homebrew.fish` sorts before
   Homebrew's `vendor_conf.d/mise-activate.fish`.
+- Go uses its defaults on every OS: `GOPATH=~/go`, and `go install` writes
+  to `~/go/bin`, which the shells put on `PATH`. mise's `go.set_gobin = false`
+  stops it from pointing `GOBIN` at the current Go version's directory, where
+  installed commands would disappear on every Go upgrade. Go tools worth
+  tracking go in the mise config with the `go:` backend.
 - BBDown stays a manual binary in `~/_runtime/bin`, because it reads its
   config and login data from the directory its binary is in.
 
