@@ -29,6 +29,11 @@ everything else.
 ## After `./install`
 
 - [ ] Log out and back in, so trackpad and keyboard-shortcut settings apply.
+- [ ] `gh auth login` (GitHub.com, HTTPS, log in with a browser). `gh` comes
+      from mise, but logging in is manual. `.gitconfig` uses `gh` as git's
+      credential helper for github.com, so pushing over HTTPS needs it;
+      cloning and pulling public repos don't. The token is stored in the
+      macOS Keychain.
 - [ ] Raycast: set its hotkey to ⌘Space (the script frees it from
       Spotlight). Shottr: set ⌘⇧3/4/5 the same way.
 - [ ] `BBDown login` (mac-personal): the login cookie is local only, in
