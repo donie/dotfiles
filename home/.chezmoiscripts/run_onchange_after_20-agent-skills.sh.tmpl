@@ -1,0 +1,44 @@
+{{- if ne .role "server" -}}
+#!/bin/sh
+# Link the skills kept in this repo into each agent's skills directory.
+# Skills installed by agents/bin/sync-skills are left alone.
+# Reruns whenever the set of skill directories changes:
+{{- $repo := .chezmoi.workingTree }}
+{{- range (glob (joinPath $repo "agents/skills/local/*")) }}
+#   shared: {{ base . }}
+{{- end }}
+{{- range (glob (joinPath $repo "agents/claude/skills/*")) }}
+#   claude: {{ base . }}
+{{- end }}
+set -eu
+repo={{ $repo | quote }}
+
+# link_skills SOURCE_PARENT DEST...: link every SOURCE_PARENT/<skill>/ into each DEST.
+link_skills() {
+    src_parent=$1
+    shift
+    for dest in "$@"; do
+        mkdir -p "$dest"
+        for dir in "$src_parent"/*/; do
+            [ -d "$dir" ] || continue
+            target="$dest/$(basename "$dir")"
+            if [ -e "$target" ] && [ ! -L "$target" ]; then
+                echo "skipping $target: a real directory is in the way" >&2
+                continue
+            fi
+            ln -sfn "${dir%/}" "$target"
+        done
+        # Remove links into this repo whose skill no longer exists.
+        for link in "$dest"/*; do
+            [ -L "$link" ] && [ ! -e "$link" ] || continue
+            case "$(readlink "$link")" in
+                "$repo"/agents/* | */dotfiles/agents/*) rm "$link" ;;
+            esac
+        done
+    done
+}
+
+link_skills "$repo/agents/skills/local" \
+    "$HOME/.claude/skills" "$HOME/.codex/skills" "$HOME/.pi/agent/skills"
+link_skills "$repo/agents/claude/skills" "$HOME/.claude/skills"
+{{ end -}}

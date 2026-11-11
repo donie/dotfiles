@@ -2,11 +2,29 @@
 # Templated by OS and role; see docs/design.md#machine-roles.
 
 {{ if ne .chezmoi.os "darwin" }}
-# fish is the macOS shell; Linux machines use bash.
+# macOS only: fish (Linux uses bash), desktop apps and personal scripts.
 .config/fish
+.config/ghostty
+.config/kitty
+.config/mpv
+.config/rex
+Library
+_runtime
+{{ end }}
+
+{{ if eq .role "server" }}
+# Coding agents run on workstations and the devbox, not on servers.
+.claude
+.codex
+.pi
 {{ end }}
 
 {{ if ne .role "mac-personal" }}
 # Personal media tooling; its config pulls secrets from the password manager.
 .gallery-dl.conf
+{{ end }}
+
+{{ if not (stat (joinPath .chezmoi.workingTree "dotfiles-private/brewfile")) }}
+# Until the Brewfile moves into this repo (docs/design.md, phase 4).
+_runtime/Brewfile
 {{ end }}

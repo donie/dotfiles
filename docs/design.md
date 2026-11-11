@@ -1,8 +1,8 @@
 # Dotfiles redesign
 
-Status: **proposal**. Nothing in this document is implemented yet. The current
-dotbot setup described in `AGENTS.md` remains the source of truth until the
-migration lands.
+Status: **in progress**. Phases 1–3 are done (see [Migration plan](#migration-plan));
+dotbot is gone and chezmoi manages everything. `AGENTS.md` describes the
+current state.
 
 ## Goals
 
@@ -75,15 +75,20 @@ home/                     # chezmoi source state
   .chezmoidata/           # shared data, e.g. alias definitions used by fish and bash
   dot_config/
     private_fish/         # macOS; private_ keeps fish's 0700 directory mode
-    nvim/  tmux/  mise/  git/  ...
+    ghostty/  mise/  ...
+    symlink_nvim.tmpl     # whole-directory links for app-written dirs
+  dot_claude/  dot_codex/  dot_pi/
+  dot_gitconfig  dot_tmux.conf  dot_vimrc
   dot_bashrc.tmpl         # Linux
+  _runtime/bin/           # personal scripts
+nvim/  mpv/  rex/  shell/kitty/  sublime/   # app-written dirs, linked whole
   .chezmoiscripts/
     run_onchange_before_10-packages-darwin.sh.tmpl   # brew bundle; reruns when the Brewfile changes
     run_onchange_before_10-packages-linux.sh.tmpl    # apt or pacman, minimal
     run_onchange_after_20-mise.sh.tmpl               # mise install
     run_onchange_after_30-macos-defaults.sh.tmpl
-    run_once_after_40-fonts-darwin.sh.tmpl           # copy licensed fonts from cloud storage, if present
-    run_once_after_90-login-shell.sh.tmpl            # chsh only if not already set
+    run_after_40-fonts.sh.tmpl                       # copy licensed fonts from cloud storage, if present
+    run_after_90-login-shell.sh.tmpl                 # chsh only if not already set
 packages/
   Brewfile                # shared
   Brewfile.personal  Brewfile.work
@@ -132,9 +137,11 @@ and other per-language version managers.
 
 ## Licensed assets
 
-Fonts and similar assets live in personal cloud storage. A `run_once_`
-script copies them into place if the source folder exists and skips
-otherwise, so a machine without cloud storage still installs cleanly.
+Fonts and similar assets live in personal cloud storage
+(`iCloud Drive/Documents/Setups/fonts/*.zip`). A `run_after_` script copies
+any font files missing from `~/Library/Fonts` and skips quietly otherwise, so
+a machine without cloud storage still installs cleanly and a late iCloud sync
+is picked up on the next apply.
 
 ## macOS settings
 
@@ -184,9 +191,11 @@ merging.
    per-file symlinks, so fisher plugin files stay local and are no longer
    tracked. They're installed by a `run_onchange_` script keyed on
    `fish_plugins`.
-3. **Configs.** Move the remaining configs. Delete `install`,
-   `install.conf.yaml` and the dotbot submodule once nothing depends on
-   them. Update `AGENTS.md` and `agents/bin/sync-*`.
+3. **Configs.** Move the remaining configs. Delete `install.conf.yaml`
+   and the dotbot submodule; `install` stays as a thin chezmoi wrapper.
+   *Done.* Directories that apps write into stay at the repo root and are
+   linked whole with `symlink_` entries. Repo-local agent skills are linked
+   by a script, because each goes to three agents. Update `AGENTS.md` and `agents/bin/sync-*`.
 4. **Packages.** Public Brewfiles, the mise config and Linux package lists.
    Remove version-manager setup from the shells and hardcoded Homebrew
    paths.

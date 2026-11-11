@@ -1,8 +1,10 @@
 # Local skills
 
 Skills kept in this repo instead of installed by `sync-skills` from
-`../manifest.json`. dotbot links each directory here into
-`~/.claude/skills/`, `~/.codex/skills/`, and `~/.pi/agent/skills/`.
+`../manifest.json`. A chezmoi script
+(`home/.chezmoiscripts/run_onchange_after_20-agent-skills.sh.tmpl`) links each
+directory here into `~/.claude/skills/`, `~/.codex/skills/`, and
+`~/.pi/agent/skills/`.
 
 | Skill | Origin | Why it's here |
 |---|---|---|

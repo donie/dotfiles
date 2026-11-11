@@ -2,7 +2,7 @@
 set -e
 
 REPO_UV="https://raw.githubusercontent.com/mitsuhiko/agent-stuff/main/extensions/uv.ts"
-AGENTS_UV="$(cd "$(dirname "$0")/.." && pwd)/pi/extensions/uv.ts"
+AGENTS_UV="$(cd "$(dirname "$0")/../.." && pwd)/home/dot_pi/agent/extensions/uv.ts"
 
 echo "=== Validating pi package manager ==="
 # Ensure pi uses bun for extensions to avoid npm peer-dependency bloat.

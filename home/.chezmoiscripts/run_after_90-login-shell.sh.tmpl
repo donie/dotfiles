@@ -1,0 +1,14 @@
+{{- if eq .chezmoi.os "darwin" -}}
+#!/bin/sh
+# Make fish the login shell once it's installed. No-op when already set.
+set -eu
+fish=$(command -v fish || true)
+if [ -z "$fish" ]; then
+    echo "fish is not installed; login shell unchanged" >&2
+    exit 0
+fi
+current=$(dscl . -read "$HOME" UserShell | awk '{print $2}')
+[ "$current" = "$fish" ] && exit 0
+grep -qx "$fish" /etc/shells || echo "$fish" | sudo tee -a /etc/shells >/dev/null
+chsh -s "$fish"
+{{ end -}}

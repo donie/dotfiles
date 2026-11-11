@@ -1,34 +1,26 @@
 # Agent Guide for `donie/dotfiles`
 
-This repository is a **public** dotfiles managed by [dotbot](https://github.com/anishathalye/dotbot). It contains the user's personal shell, editor, and tool configurations for macOS (primary) and potentially Linux.
+This repository is a **public** dotfiles repo managed by [chezmoi](https://www.chezmoi.io/). It holds the user's shell, editor, terminal and coding-agent configurations for macOS (primary) and Linux (Debian, Arch; in progress). The plan and its rationale are in `docs/design.md`.
 
 ---
 
 ## Architecture Overview
 
-### Dotbot Bootstrap
-- Entry point: `./install` (Bash script)
-- Dotbot config: `./install.conf.yaml`
-- The install script initializes the `dotbot` submodule and runs `bin/dotbot` against the YAML config.
-- **To install on a new machine**: `git clone --recurse-submodules <repo>`, run `chezmoi init --source <repo> --promptChoice "Machine role=<role>"` (roles: `mac-personal`, `mac-work`, `devbox`, `server`), then run `./install`.
+### How it installs
+- Entry point: `./install`, a thin wrapper. On first run it calls `chezmoi init --source <repo>`, which asks for the machine role, then it runs `chezmoi apply` (extra arguments are passed through, e.g. `./install --dry-run --verbose`).
+- Machine roles: `mac-personal`, `mac-work`, `devbox`, `server`. Non-interactive init: `chezmoi init --source <repo> --promptChoice "Machine role=<role>"` (the key is the prompt text).
+- `.chezmoiroot` points chezmoi at `home/`, the source state. Everything else at the repo root is supporting material.
+- chezmoi runs in **symlink mode**: plain files in `home/` become symlinks into the repo, so edits through `~` land in Git. Templates (`*.tmpl`), `private_` and `encrypted_` files are rendered copies; edit those in `home/` and run `chezmoi apply`.
+- Configs whose apps write new files into their directory (nvim, mpv, kitty, rex, Sublime `User`) stay as top-level directories and are linked as whole directories by `symlink_*.tmpl` entries in `home/`.
+- What goes where by OS and role is decided in `home/.chezmoiignore`.
 
-### Migration to chezmoi (in progress)
-The repo is moving from dotbot to chezmoi (plan: `docs/design.md`). Until it's done, both run:
-- `home/` is the chezmoi source state (`.chezmoiroot`). It currently holds git and fish. `./install` with no arguments runs dotbot, then `chezmoi apply`.
-- chezmoi runs in symlink mode: plain files in `home/` become symlinks, so edits through `~` land in the repo. Templates (`*.tmpl`), `private_` and `executable_` files are rendered copies; edit those in `home/` and run `chezmoi apply`.
-- A path must be managed by exactly one tool. When moving a config to `home/`, remove its `install.conf.yaml` entry in the same change.
-- Secret-bearing configs are `create_private_*.tmpl` templates that read values from the password manager (Bitwarden `bitwardenFields`). Never commit literal secrets; never print vault values. Rendering needs `BW_SESSION`, but only when the target file doesn't exist yet.
-- fisher plugin files are not tracked. `fish_plugins` lists them, and `home/.chezmoiscripts/run_onchange_after_10-fish-plugins.sh.tmpl` installs them.
-- Check with `chezmoi diff` / `chezmoi status` before claiming chezmoi changes work.
-
-### Public vs Private Split
-
-| Repository | Visibility | Contents |
-|------------|-----------|----------|
-| `donie/dotfiles` | **Public** | Shell configs, editor configs, nvim, tmux, mpv, bin scripts, generic tooling |
-| `donie/dotfiles-private` | **Private** | Confidential data, licensed assets, and personal configs that must not be made public |
-
-`dotfiles-private` is included as a **Git submodule** (`./dotfiles-private`). It is referenced in `install.conf.yaml` to symlink private assets into `~`.
+### Public vs private
+| Location | Contents |
+|---|---|
+| This repo | Everything that can be public |
+| Password manager | Secrets, read by `create_private_*.tmpl` templates |
+| iCloud Drive `Documents/Setups/fonts/` | Licensed fonts, installed by a script; never in Git |
+| `dotfiles-private/` submodule | Being retired: now only the Brewfiles, until phase 4 |
 
 ---
 
@@ -36,103 +28,87 @@ The repo is moving from dotbot to chezmoi (plan: `docs/design.md`). Until it's d
 
 ```
 .
-├── install                 # Bootstrap script (run this to install)
-├── install.conf.yaml       # Dotbot manifest
-├── dotbot/                 # Dotbot submodule (GitHub: anishathalye/dotbot)
-├── dotfiles-private/       # PRIVATE submodule — see warning below
-├── agents/                 # Coding agent configs (claude, codex, pi, skills)
-├── .chezmoiroot            # Points chezmoi at home/
-├── home/                   # chezmoi source state: fish, git (migration in progress)
-├── docs/                   # Design notes (docs/design.md)
-├── shell/                  # bash (Linux), kitty, ghostty
-├── nvim/                   # Neovim configuration (Lua-based)
-├── vim/                    # Vim configuration + vim-plug bootstrap
-├── tmux/                   # tmux config
-├── mpv/                    # mpv player config
-├── bin/                    # Utility scripts symlinked to ~/_runtime/bin/
-└── sublime/                # Sublime Text user settings (macOS only)
+├── install                 # Wrapper: chezmoi init (first run) + chezmoi apply
+├── .chezmoiroot            # Contains "home"
+├── home/                   # chezmoi source state (mirrors ~)
+│   ├── .chezmoi.toml.tmpl  # Role prompt, symlink mode
+│   ├── .chezmoiignore      # Per-OS / per-role exclusions
+│   ├── .chezmoiscripts/    # fisher plugins, agent skills, vim plugins, fonts, login shell
+│   ├── dot_config/         # fish, ghostty; symlink_ entries for nvim, mpv, kitty, rex
+│   ├── dot_claude/ dot_codex/ dot_pi/   # Coding agent configs
+│   ├── dot_gitconfig dot_tmux.conf dot_vimrc dot_vim/
+│   ├── _runtime/bin/       # Personal scripts → ~/_runtime/bin
+│   └── private_Library/    # Sublime Text User link (macOS)
+├── agents/                 # Agent tooling: sync scripts, skills manifest, repo-local skills
+├── nvim/ mpv/ rex/         # Whole-directory configs (linked from home/)
+├── shell/                  # bash (Linux, not yet managed), kitty (linked from home/)
+├── sublime/                # Sublime Text User package (linked from home/)
+├── tmux/shared.sh          # Unreferenced helper, kept for now
+├── docs/                   # design.md
+└── dotfiles-private/       # PRIVATE submodule (being retired) — see rule 1
 ```
-
-### Symlink Targets (from `install.conf.yaml`)
-- `agents/*` → `~/.claude/*`, `~/.codex/*`, `~/.pi/agent/*`
-- `shell/*` → `~/.config/*`
-- `home/*` → `~` (via chezmoi, not dotbot)
-- `nvim/` → `~/.config/nvim`
-- `vim/vimrc` → `~/.vimrc`
-- `tmux/tmux.conf` → `~/.tmux.conf`
-- `mpv/` → `~/.config/mpv` (excludes `watch_later/`)
-- `bin/*` → `~/_runtime/bin/*`
-- `dotfiles-private/*` → various `~` locations for private configs/assets (see `install.conf.yaml`)
 
 ---
 
 ## ⚠️ Critical Rules for Agents
 
 ### 1. NEVER modify `dotfiles-private`
-- `dotfiles-private/` contains **confidential data and commercial assets** (e.g. licensed fonts, credentials, personal bundles).
-- Do **not** read files inside `dotfiles-private/` beyond names/sizes unless explicitly asked by the user.
-- Do **not** commit changes inside `dotfiles-private/`.
-- Do **not** log, echo, or expose paths or contents from `dotfiles-private` in commit messages, PRs, or generated documentation.
+- It contains confidential data and licensed material.
+- Do **not** read files inside it beyond names and sizes unless the user explicitly asks.
+- Do **not** commit changes inside it, or expose its paths or contents in commit messages, PRs or docs.
 
-### 2. Keep `install.conf.yaml` valid
-- This is the source of truth for dotbot. When adding or removing dotfile links, update this YAML file.
-- Use `relink: true` and `create: true` defaults already set at the top of the file.
-- If a new config directory needs symlinking, follow the existing pattern:
-  ```yaml
-  ~/.config/<tool>: <local-dir>/
-  ```
+### 2. Secrets and licensed assets
+- Never commit literal secrets, encrypted or not. Secret-bearing configs are `create_private_*.tmpl` templates that read values from the password manager (currently `bitwardenFields`). Never print vault values.
+- `create_` means the vault is only read when the target doesn't exist yet; everyday `chezmoi apply` doesn't need an unlocked vault.
+- `home/dot_pi/agent/web-search.json` must stay credential-free. If a provider key is ever needed, use a `"$ENV_VAR"` or `"!command"` credential source, never a literal key.
+- Licensed assets (fonts) never enter the repo.
 
-### 3. Submodules
-- There are two submodules: `dotbot` and `dotfiles-private`.
-- When cloning the repo fresh, use `--recurse-submodules`.
-- `dotbot` is upstream from `anishathalye/dotbot`; do not commit custom changes into it.
-- If `dotfiles-private` fails to update (e.g. SSH key missing on a new machine), the install will error on that step. This is expected and should be handled by the user.
+### 3. One owner per path
+- Every target in `~` is managed by chezmoi or by nothing. When adding a config, add it under `home/`; when removing one, delete it from `home/` and remove the now-dangling target by hand (chezmoi doesn't clean up like dotbot did; use `home/.chezmoiremove` if needed).
+- Watch directory permissions: chezmoi sets a directory's mode from its source name. Existing `0700` directories (e.g. `~/Library`) need `private_` in their source path, or chezmoi will loosen them. Check `chezmoi diff` for `old mode 40…` lines.
 
-### 4. Cross-platform considerations
-- This repo is primarily macOS-centric (`Darwin` checks exist, Sublime Text path targets `~/Library/...`).
-- `fish` is the default login shell (`chsh -s $(which fish)` is run by dotbot).
-- Some `bin/` scripts or `shell/` configs may assume macOS paths or Homebrew. Test changes on macOS if possible, or gate with `if: '[ $(uname) = Darwin ]'` in dotbot config.
+### 4. Cross-platform
+- macOS is primary; Linux support is in progress (`docs/design.md`, phase 6).
+- fish is the macOS login shell (set by `run_after_90-login-shell.sh.tmpl`); Linux uses bash.
+- Gate OS- or role-specific targets in `home/.chezmoiignore`, and OS-specific scripts with `{{ if eq .chezmoi.os "darwin" }}`.
 
 ---
 
 ## Agent Configurations
 
-All coding agent configurations are managed under `agents/`:
+| Agent | Location | Sync |
+|---|---|---|
+| Claude | `home/dot_claude/` | chezmoi |
+| Codex | `home/dot_codex/AGENTS.md` | chezmoi |
+| pi | `home/dot_pi/agent/` | chezmoi + `pi update --extensions` |
+| Repo-local skills | `agents/skills/local/` (all agents), `agents/claude/skills/` (Claude) | linked by `run_onchange_after_20-agent-skills.sh.tmpl` |
+| Installed skills | `agents/skills/manifest.json` | `npx skills add/update` |
 
-| Agent | Directory | Sync Method |
-|-------|-----------|-------------|
-| Claude | `agents/claude/` | dotbot symlink |
-| Codex | `agents/codex/AGENTS.md` | dotbot symlink |
-| pi | `agents/pi/` | dotbot + `pi update --extensions` |
-| Skills | `agents/skills/manifest.json` | `npx skills add/update` |
+- `agents/bin/sync-agents`: runs `./install`, then the two scripts below.
+- `agents/bin/sync-pi`: updates pi packages and fetches the latest `uv.ts`.
+- `agents/bin/sync-skills`: installs and updates skills from the manifest.
 
-Run `agents/bin/sync-agents` to update everything.
-Run `agents/bin/sync-pi` to update pi packages and fetch latest `uv.ts`.
-Run `agents/bin/sync-skills` to update all skills from the manifest.
+fisher plugin files are not tracked: `home/dot_config/private_fish/fish_plugins` lists them and `run_onchange_after_10-fish-plugins.sh.tmpl` installs them.
 
 ## Common Tasks
 
-### Adding a new tool config
-1. Create the config directory/file in the repo (e.g. `shell/myapp/`).
-2. Add a `link:` entry in `install.conf.yaml` pointing to the desired `~` location.
-3. Run `./install` to verify it symlinks correctly.
-4. Do **not** add secrets or licensed assets to the public repo.
+### Adding a config
+1. Single file: put it under `home/` using chezmoi naming (`dot_`, `private_`, …), e.g. `home/dot_config/myapp/config`.
+2. A directory the app writes into: keep it at the repo root and add `home/<path>/symlink_<name>.tmpl` containing `{{ .chezmoi.workingTree }}/<dir>`.
+3. Gate it by OS or role in `home/.chezmoiignore` if needed.
+4. Run `chezmoi diff`, then `./install`.
 
-### Removing a tool config
-1. Remove the `link:` entry from `install.conf.yaml`.
-2. Optionally remove the source directory from the repo.
-3. Consider adding a `clean: ['~']` target or manual cleanup note if orphaned symlinks remain.
-
-### Updating dotbot
-```bash
-cd dotbot && git fetch && git checkout <tag> && cd .. && git add dotbot && git commit -m "Update dotbot to <tag>"
-```
+### Removing a config
+1. Delete it from `home/` (and its root directory, if any).
+2. Remove the target in `~` by hand, or list it in `home/.chezmoiremove`.
 
 ---
 
 ## Testing Checklist
 
 Before claiming changes are complete:
-- [ ] No new files were accidentally created inside `dotfiles-private/`.
-- [ ] No secrets, tokens, or licensed assets were added to the public repo.
-- [ ] `install.conf.yaml` parses as valid YAML.
+- [ ] `chezmoi diff` shows only intended changes (including no unexpected `old mode 40…` directory permission changes).
+- [ ] `chezmoi status` is clean after `./install` (` R` lines for `run_after_` scripts are expected).
+- [ ] Rendered scripts pass `chezmoi execute-template < <script.tmpl> | sh -n`.
+- [ ] No files were created inside `dotfiles-private/`.
+- [ ] No secrets, tokens or licensed assets were added to the repo.

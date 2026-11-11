@@ -1,25 +1,19 @@
 #!/usr/bin/env bash
+# Apply these dotfiles with chezmoi (see docs/design.md).
+# First run on a machine: asks for the machine role, then applies.
+# Extra arguments go to `chezmoi apply`, e.g. `./install --dry-run --verbose`.
+set -euo pipefail
 
-set -e
-
-CONFIG="install.conf.yaml"
-DOTBOT_DIR="dotbot"
-
-DOTBOT_BIN="bin/dotbot"
 BASEDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-cd "${BASEDIR}"
-git -C "${DOTBOT_DIR}" submodule sync --quiet --recursive
-git submodule update --init --recursive "${DOTBOT_DIR}"
-
-"${BASEDIR}/${DOTBOT_DIR}/${DOTBOT_BIN}" -d "${BASEDIR}" -c "${CONFIG}" "${@}"
-
-# Files migrated under home/ are managed by chezmoi (see docs/design.md).
-# Skipped when dotbot arguments are given, e.g. `./install --only link`.
-if [ $# -eq 0 ]; then
-  if command -v chezmoi >/dev/null 2>&1 && [ -f "${XDG_CONFIG_HOME:-$HOME/.config}/chezmoi/chezmoi.toml" ]; then
-    chezmoi apply
-  else
-    echo "chezmoi is not set up; run: chezmoi init --source \"${BASEDIR}\"" >&2
-  fi
+if ! command -v chezmoi >/dev/null 2>&1; then
+  echo "chezmoi is not installed: brew install chezmoi" >&2
+  echo "(Linux: sh -c \"\$(curl -fsLS get.chezmoi.io)\" -- -b ~/.local/bin)" >&2
+  exit 1
 fi
+
+if [ ! -f "${XDG_CONFIG_HOME:-$HOME/.config}/chezmoi/chezmoi.toml" ]; then
+  chezmoi init --source "${BASEDIR}"
+fi
+
+chezmoi apply "$@"
