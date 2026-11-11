@@ -118,8 +118,15 @@ and other per-language version managers.
   The repo holds only the file's structure.
 - `.chezmoiignore` excludes them on roles that don't need them, so those
   machines never need vault access.
-- Rendering requires an unlocked vault session. Edit these files through
-  `chezmoi edit`, not in place.
+- Secret-bearing files use the `create_` prefix, as in
+  `home/create_private_dot_gallery-dl.conf.tmpl`. chezmoi renders them only
+  when the target doesn't exist, so the vault is read once per machine and
+  everyday `apply`, `status` and `diff` runs never need an unlocked vault.
+  The `private_` prefix makes the file `0600`.
+- Trade-off: later changes to the template don't reach existing machines. To
+  re-render, unlock the vault, delete the target and run `chezmoi apply`.
+  The rendered file is a copy, so local edits don't flow back to the repo;
+  edit the template in `home/` instead.
 - Never commit literal credentials. Existing guidance in `install.conf.yaml`
   about `"$ENV_VAR"` and `"!command"` credential sources carries over.
 

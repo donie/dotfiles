@@ -5,3 +5,8 @@
 # fish is the macOS shell; Linux machines use bash.
 .config/fish
 {{ end }}
+
+{{ if ne .role "mac-personal" }}
+# Personal media tooling; its config pulls secrets from the password manager.
+.gallery-dl.conf
+{{ end }}

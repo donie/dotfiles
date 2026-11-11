@@ -9,7 +9,6 @@
     # fish and git are managed by chezmoi (home/), see docs/design.md.
     ~/.config/kitty: shell/kitty/
     ~/.config/ghostty/config: shell/ghostty.config
-    ~/.gallery-dl.conf: dotfiles-private/gallery-dl.conf
     ~/_runtime/Brewfile: dotfiles-private/brewfile
     ~/.tmux.conf: tmux/tmux.conf
     ~/.config/rex: rex/

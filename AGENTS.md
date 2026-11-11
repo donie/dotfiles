@@ -17,6 +17,7 @@ The repo is moving from dotbot to chezmoi (plan: `docs/design.md`). Until it's d
 - `home/` is the chezmoi source state (`.chezmoiroot`). It currently holds git and fish. `./install` with no arguments runs dotbot, then `chezmoi apply`.
 - chezmoi runs in symlink mode: plain files in `home/` become symlinks, so edits through `~` land in the repo. Templates (`*.tmpl`), `private_` and `executable_` files are rendered copies; edit those in `home/` and run `chezmoi apply`.
 - A path must be managed by exactly one tool. When moving a config to `home/`, remove its `install.conf.yaml` entry in the same change.
+- Secret-bearing configs are `create_private_*.tmpl` templates that read values from the password manager (Bitwarden `bitwardenFields`). Never commit literal secrets; never print vault values. Rendering needs `BW_SESSION`, but only when the target file doesn't exist yet.
 - fisher plugin files are not tracked. `fish_plugins` lists them, and `home/.chezmoiscripts/run_onchange_after_10-fish-plugins.sh.tmpl` installs them.
 - Check with `chezmoi diff` / `chezmoi status` before claiming chezmoi changes work.
 
