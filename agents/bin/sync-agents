@@ -3,7 +3,7 @@ set -e
 
 BASEDIR="$(cd "$(dirname "$0")/../.." && pwd)"
 
-echo "=== Syncing agent configs (dotbot) ==="
+echo "=== Applying dotfiles (chezmoi) ==="
 cd "$BASEDIR"
 ./install
 

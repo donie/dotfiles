@@ -1,0 +1,6 @@
+#!/bin/sh
+# Install vim-plug plugins. Reruns whenever the vimrc changes:
+# vimrc sha256: {{ include "dot_vimrc" | sha256sum }}
+command -v vim >/dev/null 2>&1 || exit 0
+vim -E -s -u "$HOME/.vimrc" +PlugInstall +qall </dev/null ||
+    echo "vim PlugInstall reported errors; run :PlugInstall in vim to check" >&2

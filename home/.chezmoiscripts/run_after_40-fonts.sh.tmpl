@@ -1,0 +1,21 @@
+{{- if eq .chezmoi.os "darwin" -}}
+#!/bin/sh
+# Install licensed fonts from iCloud Drive; they are never stored in this repo.
+# Every .ttf/.otf inside each zip in $src is copied to ~/Library/Fonts unless a
+# file with the same name is already there. Quiet when there's nothing to do.
+set -eu
+src="$HOME/Library/Mobile Documents/com~apple~CloudDocs/Documents/Setups/fonts"
+dest="$HOME/Library/Fonts"
+[ -d "$src" ] || exit 0
+mkdir -p "$dest"
+for zip in "$src"/*.zip; do
+    [ -f "$zip" ] || continue
+    unzip -Z1 "$zip" | grep -v '^__MACOSX/' | grep -Ei '\.(ttf|otf)$' |
+        while IFS= read -r entry; do
+            name=$(basename "$entry")
+            [ -e "$dest/$name" ] && continue
+            unzip -p "$zip" "$entry" >"$dest/$name"
+            echo "installed font: $name"
+        done
+done
+{{ end -}}
