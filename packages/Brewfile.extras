@@ -1,0 +1,13 @@
+# Optional apps, never installed automatically. Install on a given Mac with
+#   brew bundle --file=~/dotfiles/packages/Brewfile.extras
+# or pick single ones with `brew install --cask <name>`.
+
+cask "orbstack"
+cask "android-platform-tools"
+cask "anki"
+cask "tencent-meeting"
+
+# Mostly useful on a desktop Mac with external displays and audio gear
+cask "lunar"
+cask "soundsource"
+cask "muzzle"

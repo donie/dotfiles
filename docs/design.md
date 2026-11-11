@@ -1,6 +1,6 @@
 # Dotfiles redesign
 
-Status: **in progress**. Phases 1–3 are done (see [Migration plan](#migration-plan));
+Status: **in progress**. Phases 1–4 are done, phase 4 on macOS only (see [Migration plan](#migration-plan));
 dotbot is gone and chezmoi manages everything. `AGENTS.md` describes the
 current state.
 
@@ -83,15 +83,17 @@ home/                     # chezmoi source state
   _runtime/bin/           # personal scripts
 nvim/  mpv/  rex/  shell/kitty/  sublime/   # app-written dirs, linked whole
   .chezmoiscripts/
-    run_onchange_before_10-packages-darwin.sh.tmpl   # brew bundle; reruns when the Brewfile changes
+    run_onchange_before_05-homebrew.sh.tmpl          # brew bundle; reruns when a Brewfile changes
+    run_onchange_after_15-mise-tools.sh.tmpl         # mise install; reruns when the mise config changes
     run_onchange_before_10-packages-linux.sh.tmpl    # apt or pacman, minimal
     run_onchange_after_20-mise.sh.tmpl               # mise install
     run_onchange_after_30-macos-defaults.sh.tmpl
     run_after_40-fonts.sh.tmpl                       # copy licensed fonts from cloud storage, if present
     run_after_90-login-shell.sh.tmpl                 # chsh only if not already set
 packages/
-  Brewfile                # shared
-  Brewfile.personal  Brewfile.work
+  Brewfile                # shared (both Macs)
+  Brewfile.personal       # mac-personal
+  Brewfile.extras         # optional, never installed automatically
   apt.txt  pacman.txt
 ```
 
@@ -106,14 +108,32 @@ the inputs change.
 | GUI apps, fonts, Quick Look plugins | Homebrew cask, `mas` | |
 | GNU userland overrides, build dependencies, services | Homebrew formula | coreutils, meson |
 | Login shells, tmux, git | OS package manager | fish (macOS), bash (Linux) |
-| Language runtimes | mise (`dev` set) | node, go, ruby, bun |
-| Portable CLI tools | mise (`core` set, aqua or ubi backends) | rg, fd, bat, eza, fzf, delta, jq, gh, nvim |
-| Python tooling | uv | |
-| Prebuilt third-party binaries currently committed to `bin/` | mise github or ubi backend | BBDown (then delete `bin/BBDown`) |
+| Language runtimes | mise (`dev` set) | node, ruby, go, java, bun, rust (mise drives rustup) |
+| Portable CLI tools | mise (`core` set; aqua, github, pipx, npm backends) | rg, fd, bat, eza, fzf, delta, jq, gh, nvim |
+| Python CLI tools | mise `pipx:` backend (runs on uv) | gallery-dl, instaloader |
+| Python projects | uv | |
+| Optional apps | `Brewfile.extras`, installed by hand per Mac | orbstack, lunar |
+| Self-updating or beta apps | manual, listed in `docs/macos-manual.md` | agent CLIs, Rex, BBDown |
 
-The mise config is a template. The `core` set is installed on every role,
-and `dev` is added on every role except `server`. This replaces nvm, rbenv
-and other per-language version managers.
+The mise config is plain TOML split by role, gated in `.chezmoiignore`:
+`config.toml` (core, every role), `conf.d/dev.toml` (every role except
+`server`) and `conf.d/personal.toml` (`mac-personal`). macOS-only tools use
+mise's per-tool `os = ["macos"]` option. The files are symlinks, so
+`mise use -g` edits the repo. This replaces nvm, rbenv and the duplicate
+Homebrew Rust.
+
+Exceptions and gotchas:
+
+- mise has no macOS build of `btop`, so macOS gets it from Homebrew and
+  Linux from mise (`os = ["linux"]`).
+- Programs not started from an activated shell (GUI apps, agents, cron)
+  don't see mise tools on `PATH`. Config that shells out to them uses the
+  shims in `~/.local/share/mise/shims`, e.g. git's `delta` pager and `gh`
+  credential helper.
+- fish must load Homebrew before mise: `conf.d/00-homebrew.fish` sorts before
+  Homebrew's `vendor_conf.d/mise-activate.fish`.
+- BBDown stays a manual binary in `~/_runtime/bin`, because it reads its
+  config and login data from the directory its binary is in.
 
 ## Secrets
 
@@ -197,6 +217,9 @@ merging.
    linked whole with `symlink_` entries. Repo-local agent skills are linked
    by a script, because each goes to three agents. Update `AGENTS.md` and `agents/bin/sync-*`.
 4. **Packages.** Public Brewfiles, the mise config and Linux package lists.
+   *Done for macOS;* Linux package lists move to phase 6. The work Mac starts
+   from the shared Brewfile only; a `Brewfile.work` is written when it's next
+   set up.
    Remove version-manager setup from the shells and hardcoded Homebrew
    paths.
 5. **macOS.** Settings script and the manual checklist.

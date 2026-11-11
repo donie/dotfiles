@@ -1,0 +1,22 @@
+# mise dev set: every role except server.
+
+[tools]
+node = "lts"
+rust = "stable"  # mise drives rustup; toolchains live in ~/.rustup
+ruby = "3.4"
+go = "latest"
+java = "temurin-17"
+bun = "latest"
+pnpm = "latest"
+yarn = "latest"
+maven = "latest"
+terraform = "latest"
+mkcert = "latest"
+golangci-lint = "latest"
+codex = "latest"
+"go:golang.org/x/tools/gopls" = "latest"
+"pipx:git-filter-repo" = "latest"
+"npm:agent-browser" = "latest"
+"npm:@slidev/cli" = "latest"
+"npm:defuddle" = "latest"
+xcodegen = { version = "latest", os = ["macos"] }

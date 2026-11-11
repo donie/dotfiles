@@ -71,12 +71,11 @@ alias so source
 type -q bat; and alias cat bat
 type -q fd; and alias find fd
 type -q tldr; and alias help tldr
-type -q htop; and alias top htop
+type -q btop; and alias top btop
 type -q gallery-dl; and alias gdl gallery-dl
 
 # abbreviation
 abbr mtr 'sudo mtr'
-abbr ncdu 'ncdu --color dark'
 abbr ping 'prettyping --nolegend'
 abbr brewlog 'brew log --pretty=format:"%h, %aI, %an%n >>%s<<%n" --graph'
 abbr ytdlp 'yt-dlp -f "bestvideo[ext=mp4][vcodec^=avc1]+bestaudio[ext=m4a][acodec^=mp4a]/best[ext=mp4]"'
@@ -88,8 +87,8 @@ abbr jkwatch 'jekyll build --source ~/Documents/blogsrc/ --destination ~/Documen
 set -gx EDITOR nvim
 
 # set PATH
-fish_add_path /opt/homebrew/bin
-fish_add_path /opt/homebrew/sbin
+# Homebrew is set up in conf.d/00-homebrew.fish; mise is activated right after
+# it by Homebrew's vendor_conf.d/mise-activate.fish.
 fish_add_path $HOME/go/bin
 fish_add_path ~/_runtime/bin
 fish_add_path ~/.local/bin
@@ -110,13 +109,8 @@ if type -q brew
     end
 end
 
-## set rbnev
-status --is-interactive; and rbenv init - fish | source
-#function rb --wraps ruby --description 'lazy load rbenv'
-#    rbenv init - fish | source
-#    functions -e rb  # remove this wrapper
-#    ruby $argv
-#end
+## direnv (installed by mise, so Homebrew's fish hook isn't there)
+status --is-interactive; and type -q direnv; and direnv hook fish | source
 
 ## set uv
 # rerun this after uv update
@@ -127,9 +121,8 @@ status --is-interactive; and rbenv init - fish | source
 #    uvx --generate-shell-completion fish | source
 #end
 
-# Added by LM Studio CLI (lms)
-set -gx PATH $PATH /Users/donie/.lmstudio/bin
-# End of LM Studio CLI section
+# LM Studio CLI (lms)
+test -d ~/.lmstudio/bin; and fish_add_path --append ~/.lmstudio/bin
 
 # Added by OrbStack: command-line tools and integration
 # This won't be added again if you remove it.

@@ -1,0 +1,6 @@
+#!/bin/bash
+
+# Loop through command-line arguments
+for url in "$@"; do
+    tdl dl --group -u "$url"
+done

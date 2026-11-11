@@ -1,0 +1,6 @@
+# mise personal set: mac-personal only.
+
+[tools]
+"pipx:gallery-dl" = "latest"
+"pipx:instaloader" = "latest"
+"pipx:f2" = "latest"
