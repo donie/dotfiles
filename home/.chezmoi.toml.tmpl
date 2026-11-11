@@ -1,0 +1,11 @@
+{{- /* Generates ~/.config/chezmoi/chezmoi.toml on `chezmoi init`. */ -}}
+{{- $roles := list "mac-personal" "mac-work" "devbox" "server" -}}
+{{- $role := promptChoiceOnce . "role" "Machine role" $roles -}}
+# The repo root. Source state lives under home/ (see .chezmoiroot).
+sourceDir = {{ .chezmoi.workingTree | quote }}
+# Plain files become symlinks into the repo, so edits land in Git directly.
+# Templates, private and executable files are still written as copies.
+mode = "symlink"
+
+[data]
+    role = {{ $role | quote }}

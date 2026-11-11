@@ -10,7 +10,15 @@ This repository is a **public** dotfiles managed by [dotbot](https://github.com/
 - Entry point: `./install` (Bash script)
 - Dotbot config: `./install.conf.yaml`
 - The install script initializes the `dotbot` submodule and runs `bin/dotbot` against the YAML config.
-- **To install on a new machine**: `git clone --recurse-submodules <repo>` then run `./install`.
+- **To install on a new machine**: `git clone --recurse-submodules <repo>`, run `chezmoi init --source <repo> --promptChoice "Machine role=<role>"` (roles: `mac-personal`, `mac-work`, `devbox`, `server`), then run `./install`.
+
+### Migration to chezmoi (in progress)
+The repo is moving from dotbot to chezmoi (plan: `docs/design.md`). Until it's done, both run:
+- `home/` is the chezmoi source state (`.chezmoiroot`). It currently holds git and fish. `./install` with no arguments runs dotbot, then `chezmoi apply`.
+- chezmoi runs in symlink mode: plain files in `home/` become symlinks, so edits through `~` land in the repo. Templates (`*.tmpl`), `private_` and `executable_` files are rendered copies; edit those in `home/` and run `chezmoi apply`.
+- A path must be managed by exactly one tool. When moving a config to `home/`, remove its `install.conf.yaml` entry in the same change.
+- fisher plugin files are not tracked. `fish_plugins` lists them, and `home/.chezmoiscripts/run_onchange_after_10-fish-plugins.sh.tmpl` installs them.
+- Check with `chezmoi diff` / `chezmoi status` before claiming chezmoi changes work.
 
 ### Public vs Private Split
 
@@ -32,7 +40,10 @@ This repository is a **public** dotfiles managed by [dotbot](https://github.com/
 ├── dotbot/                 # Dotbot submodule (GitHub: anishathalye/dotbot)
 ├── dotfiles-private/       # PRIVATE submodule — see warning below
 ├── agents/                 # Coding agent configs (claude, codex, pi, skills)
-├── shell/                  # Shell configs (fish, bash, git, kitty, ghostty)
+├── .chezmoiroot            # Points chezmoi at home/
+├── home/                   # chezmoi source state: fish, git (migration in progress)
+├── docs/                   # Design notes (docs/design.md)
+├── shell/                  # bash (Linux), kitty, ghostty
 ├── nvim/                   # Neovim configuration (Lua-based)
 ├── vim/                    # Vim configuration + vim-plug bootstrap
 ├── tmux/                   # tmux config
@@ -43,7 +54,8 @@ This repository is a **public** dotfiles managed by [dotbot](https://github.com/
 
 ### Symlink Targets (from `install.conf.yaml`)
 - `agents/*` → `~/.claude/*`, `~/.codex/*`, `~/.pi/agent/*`
-- `shell/*` → `~/.config/*`, `~/.gitconfig`
+- `shell/*` → `~/.config/*`
+- `home/*` → `~` (via chezmoi, not dotbot)
 - `nvim/` → `~/.config/nvim`
 - `vim/vimrc` → `~/.vimrc`
 - `tmux/tmux.conf` → `~/.tmux.conf`

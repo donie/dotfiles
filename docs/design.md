@@ -74,7 +74,7 @@ home/                     # chezmoi source state
   .chezmoiignore          # templated: drops layers by role and OS
   .chezmoidata/           # shared data, e.g. alias definitions used by fish and bash
   dot_config/
-    fish/                 # macOS
+    private_fish/         # macOS; private_ keeps fish's 0700 directory mode
     nvim/  tmux/  mise/  git/  ...
   dot_bashrc.tmpl         # Linux
   .chezmoiscripts/
@@ -153,6 +153,8 @@ macOS:
 3. Log in to the vault CLI.
 4. `chezmoi init --apply <github-user>`: clones over HTTPS without
    credentials, prompts for the role, links configs and runs the scripts.
+   Non-interactive: add `--promptChoice "Machine role=<role>"`. The key is
+   the prompt text, not the data key.
 5. Work through `docs/macos-manual.md`.
 6. Optionally, `gh auth login`. This is only needed to push.
 
@@ -167,15 +169,16 @@ merging.
 
 1. **Prune.** Remove zsh and its prompt framework, the unused WezTerm
    config, and backup and old files. Vim stays as is, next to nvim.
-   Fisher-generated plugin files wait for phase 3: `~/.config/fish/functions`
-   is a directory symlink into the repo, so fisher would write them straight
-   back.
+   *Done.*
 2. **Pilot.** Bring git, fish and one secret-bearing template under chezmoi
    in symlink mode. Validate on a throwaway Linux VM and on this Mac.
+   *git and fish done:* `~/.config/fish` is now a real directory with
+   per-file symlinks, so fisher plugin files stay local and are no longer
+   tracked. They're installed by a `run_onchange_` script keyed on
+   `fish_plugins`.
 3. **Configs.** Move the remaining configs. Delete `install`,
    `install.conf.yaml` and the dotbot submodule once nothing depends on
-   them. Stop tracking fisher-generated files; install them from
-   `fish_plugins`. Update `AGENTS.md` and `agents/bin/sync-*`.
+   them. Update `AGENTS.md` and `agents/bin/sync-*`.
 4. **Packages.** Public Brewfiles, the mise config and Linux package lists.
    Remove version-manager setup from the shells and hardcoded Homebrew
    paths.
