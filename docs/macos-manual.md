@@ -51,3 +51,27 @@ everything else.
 | Claude Code, Amp, Cursor Agent, Droid | Install and update themselves | Each vendor's install script; they land in `~/.local/bin` |
 | Orca, Open WebUI, krokiet | Only needed on some machines | As needed |
 | Anything in `packages/Brewfile.extras` | Optional per machine | `brew bundle --file=~/dotfiles/packages/Brewfile.extras`, or `brew install --cask <name>` |
+
+## Migrating a Mac from the old dotbot setup
+
+For a Mac that still has the dotbot-based checkout of this repo.
+
+1. `brew install chezmoi`, then `git -C ~/dotfiles pull`. Warnings that
+   `dotbot` and `dotfiles-private` can't be removed are expected: Git leaves
+   the old submodule directories behind.
+2. mac-personal only: unlock the password manager CLI (see "Before
+   `./install`"); `~/.gallery-dl.conf` is created from the vault.
+3. `./install` in a terminal. Before applying, a one-time script
+   (`run_once_before_00-retire-dotbot-links.sh.tmpl`) removes the old dotbot
+   links that are dead or point into `dotbot`/`dotfiles-private`, and turns a
+   symlinked `~/.config/fish` into a real directory, keeping
+   `fish_variables`. Homebrew then installs whatever the Brewfiles list that's
+   missing, which can take a while.
+4. Delete the leftovers: `rm -rf ~/dotfiles/dotbot ~/dotfiles/dotfiles-private
+   ~/dotfiles/.git/modules`. Untracked leftovers of moved configs (for example
+   `~/dotfiles/shell/fish`) show in `git status --ignored` and can go too.
+5. Optional cleanup of what mise now provides:
+   - `cat ~/dotfiles/packages/Brewfile* | brew bundle cleanup --file=-` lists
+     Homebrew packages that aren't in any Brewfile; add `--force` to remove
+     them.
+   - Remove old version managers: `rm -rf ~/.nvm ~/.rbenv`.

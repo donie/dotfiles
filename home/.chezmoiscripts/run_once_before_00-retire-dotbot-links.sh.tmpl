@@ -1,0 +1,48 @@
+#!/bin/sh
+# One-time migration from the old dotbot setup (docs/macos-manual.md). dotbot
+# linked files from this repo into ~ and cleaned up dead links itself; chezmoi
+# doesn't. Before the first apply on a machine, remove links into this repo
+# that are dead or point into the retired dotbot/dotfiles-private
+# directories, and turn a directory-symlinked ~/.config/fish into a real
+# directory (keeping its untracked contents, e.g. fish_variables).
+# Links that are still valid (nvim, mpv, kitty, rex, skills) are left alone.
+set -eu
+repo={{ .chezmoi.workingTree | quote }}
+
+points_into_repo() { # link target text
+    case "$1" in
+        "$repo"/* | */dotfiles/* | dotfiles/*) return 0 ;;
+    esac
+    return 1
+}
+
+fish="$HOME/.config/fish"
+if [ -L "$fish" ] && points_into_repo "$(readlink "$fish")"; then
+    src=$(cd "$fish/" 2>/dev/null && pwd -P || true)
+    rm "$fish"
+    mkdir -p "$fish"
+    chmod 700 "$fish"
+    if [ -n "$src" ] && [ -d "$src" ]; then
+        cp -Rp "$src/." "$fish/"
+    fi
+    echo "replaced the ~/.config/fish symlink with a directory"
+fi
+
+for dir in "$HOME" "$HOME/.config" "$fish" "$fish/conf.d" "$fish/functions" \
+    "$fish/completions" "$HOME/.config/ghostty" "$HOME/.claude" \
+    "$HOME/.claude/skills" "$HOME/.codex" "$HOME/.codex/skills" "$HOME/.pi/agent" \
+    "$HOME/.pi/agent/skills" "$HOME/.pi/agent/extensions" "$HOME/.vim/autoload" \
+    "$HOME/_runtime" "$HOME/_runtime/bin"; do
+    [ -d "$dir" ] || continue
+    for link in "$dir"/.* "$dir"/*; do
+        [ -L "$link" ] || continue
+        target=$(readlink "$link")
+        points_into_repo "$target" || continue
+        case "$target" in
+            */dotbot/* | */dotfiles-private/*) ;;
+            *) [ -e "$link" ] && continue ;;
+        esac
+        rm "$link"
+        echo "removed old dotbot link: ${link#"$HOME"/} -> $target"
+    done
+done
