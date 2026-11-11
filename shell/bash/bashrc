@@ -1,0 +1,167 @@
+ # ~/.bashrc — devbox (Debian), ported from shell/fish/config.fish
+# Install: scp ~/dotfiles/shell/bash/bashrc mars:~/.bashrc
+
+# Only for interactive shells.
+[[ $- == *i* ]] || return
+
+# Optional: fish-like highlighting/autosuggestions. Must load first.
+[[ -f ~/.local/share/blesh/ble.sh ]] && source ~/.local/share/blesh/ble.sh --noattach
+
+# ---------------------------------------------------------------- path / env
+for d in ~/.local/bin ~/go/bin ~/.cargo/bin; do
+  [[ -d $d && :$PATH: != *:$d:* ]] && PATH=$d:$PATH
+done
+export PATH
+
+command -v mise >/dev/null && eval "$(mise activate bash)"
+
+export EDITOR=nvim VISUAL=nvim
+export SUDO_EDITOR="$HOME/.local/share/mise/shims/nvim"
+export BAT_THEME=ansi          # follow the terminal palette
+export MANPAGER="sh -c 'col -bx | bat -l man -p'"
+command -v bat >/dev/null || unset MANPAGER
+
+# ------------------------------------------------------------------- history
+HISTSIZE=50000
+HISTFILESIZE=100000
+HISTCONTROL=ignoreboth:erasedups
+shopt -s histappend checkwinsize globstar 2>/dev/null
+
+# ---------------------------------------------------------------- completion
+[[ -r /usr/share/bash-completion/bash_completion ]] && . /usr/share/bash-completion/bash_completion
+[[ -x /usr/bin/lesspipe ]] && eval "$(SHELL=/bin/sh lesspipe)"
+
+# --------------------------------------------------------------------- colors
+# Same LS_COLORS as the fish config (bold red dirs). eza reads it too.
+export LS_COLORS='no=00:fi=00:di=01;31:ln=01;36:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arj=01;31:*.taz=01;31:*.lzh=01;31:*.zip=01;31:*.z=01;31:*.Z=01;31:*.gz=01;31:*.bz2=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.jpg=01;35:*.jpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.avi=01;35:*.fli=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.ogg=01;35:*.mp3=01;35:*.wav=01;35:'
+
+# -------------------------------------------------------------------- aliases
+if command -v eza >/dev/null; then
+  alias ls='eza --group-directories-first'
+  alias l='eza -lF --group-directories-first --git'
+  alias ll='eza -lF --group-directories-first --git'
+  alias la='eza -laF --group-directories-first --git'
+  alias tree='eza --tree'
+else
+  alias ls='ls --color=auto'
+  alias l='ls -lF --color=auto'
+  alias ll='ls -lF --color=auto'
+  alias la='ls -lAF --color=auto'
+fi
+
+alias grep='grep --color=auto'
+alias diff='diff --color=auto'
+alias df='df -h'
+alias so=source
+
+# nvim for you; /usr/bin/vi and vim stay untouched as the fallback.
+if command -v nvim >/dev/null; then
+  alias vi=nvim vim=nvim vimdiff='nvim -d'
+fi
+command -v bat  >/dev/null && alias cat='bat --paging=never'
+command -v fd   >/dev/null && alias find=fd
+command -v tldr >/dev/null && alias help=tldr
+command -v htop >/dev/null && alias top=htop
+
+# fish abbreviations: real abbrs with ble.sh, plain aliases otherwise.
+if [[ ${BLE_VERSION-} ]]; then
+  ble-sabbrev mtr='sudo mtr' ncdu='ncdu --color dark'
+else
+  alias mtr='sudo mtr' ncdu='ncdu --color dark'
+fi
+
+# ---------------------------------------------------------------------- tools
+command -v fzf    >/dev/null && eval "$(fzf --bash)"        # Ctrl-R, Ctrl-T, Alt-C
+command -v zoxide >/dev/null && eval "$(zoxide init bash)"  # z, zi
+
+# --------------------------------------------------------------------- prompt
+# Fish default prompt + informative git status, Ayu Dark colors:
+#   donie@mars ~/c/project (main ⇡1|⇢ 1*2 …3) [1]>
+# \001/\002 inside values replace \[ \], so branch and directory names are
+# never expanded as code.
+__rgb() { printf -v "$1" '\001\e[%sm\002' "$2"; }
+__rgb _c_reset 0
+__rgb _c_user  '92'                  # brgreen
+__rgb _c_cwd   '38;2;89;194;255'     # 59C2FF
+__rgb _c_root  '31'
+__rgb _c_branch '2;36'               # cyan --dim
+__rgb _c_dirty '38;2;230;180;80'     # E6B450
+__rgb _c_staged '38;2;194;217;76'    # C2D94C
+__rgb _c_clean '1;32'                # green --bold
+__rgb _c_err   '38;2;255;51;51'      # FF3333
+unset -f __rgb
+
+# fish's prompt_pwd: ~/code/project/src -> ~/c/p/src (.config -> .c)
+__prompt_pwd() {
+  local p=${PWD/#$HOME/\~} out= part i
+  if [[ $p == '~' || $p == / ]]; then _p_pwd=$p; return; fi
+  local -a parts
+  IFS=/ read -ra parts <<<"$p"
+  for ((i = 0; i < ${#parts[@]} - 1; i++)); do
+    part=${parts[i]}
+    [[ $part == .* ]] && out+=${part:0:2}/ || out+=${part:0:1}/
+  done
+  _p_pwd=$out${parts[-1]}
+}
+
+__prompt_git() {
+  _p_git=
+  local line xy branch= oid= ahead=0 behind=0 staged=0 dirty=0 untracked=0
+  while IFS= read -r line; do
+    case $line in
+      '# branch.head '*) branch=${line#'# branch.head '} ;;
+      '# branch.oid '*)  oid=${line#'# branch.oid '} ;;
+      '# branch.ab '*)   read -r _ _ ahead behind <<<"$line"
+                         ahead=${ahead#+} behind=${behind#-} ;;
+      '? '*)             ((++untracked)) ;;
+      'u '*)             ((++dirty)) ;;
+      [12]' '*)          xy=${line:2:2}
+                         [[ ${xy:0:1} != . ]] && ((++staged))
+                         [[ ${xy:1:1} != . ]] && ((++dirty)) ;;
+    esac
+  done < <(git --no-optional-locks status --porcelain=v2 --branch 2>/dev/null)
+  [[ $branch ]] || return
+  [[ $branch == '(detached)' ]] && branch=${oid:0:7}
+
+  local up= state=
+  ((ahead))  && up+=⇡$ahead
+  ((behind)) && up+=⇣$behind
+  ((staged))    && state+="${_c_staged}⇢ $staged"
+  ((dirty))     && state+="${_c_dirty}*$dirty"
+  ((untracked)) && state+="${_c_reset} …$untracked"
+  [[ $state ]] || state="${_c_clean}✓"
+  _p_git=" ${_c_reset}(${_c_branch}${branch}${_c_reset}${up:+ $up}|${state}${_c_reset})"
+}
+
+__prompt() {
+  local status=$?
+  __prompt_pwd
+  __prompt_git
+  _p_status=
+  ((status)) && _p_status=" ${_c_err}[$status]${_c_reset}"
+}
+
+if ((EUID == 0)); then _c_cwd=$_c_root; _p_char='#'; else _p_char='>'; fi
+
+# Title: user@host at the prompt, user@host: command while one runs.
+PS1='\[\e]0;\u@\h\a\]'"${_c_user}"'\u'"${_c_reset}"'@\h ${_c_cwd}${_p_pwd}${_c_reset}${_p_git}${_p_status}${_p_char} '
+PS0='\e]0;\u@\h: $(read -r c _ < <(fc -ln -1); printf %s "$c")\a'
+PROMPT_COMMAND="__prompt${PROMPT_COMMAND:+;$PROMPT_COMMAND}"
+
+# ------------------------------------------------------------- ble.sh colors
+# Ayu Dark, matching the fish theme.
+if [[ ${BLE_VERSION-} ]]; then
+  ble-face auto_complete=fg=#4D5566
+  ble-face command_builtin=fg=#39BAE6 command_alias=fg=#39BAE6 \
+           command_function=fg=#39BAE6 command_file=fg=#39BAE6 \
+           command_keyword=fg=#F29668
+  ble-face syntax_quoted=fg=#C2D94C syntax_quotation=fg=#C2D94C \
+           syntax_comment=fg=#626A73 syntax_error=fg=#FF3333
+  ble-face filename_directory=underline
+fi
+
+# Local, machine-specific additions.
+[[ -f ~/.bashrc.local ]] && . ~/.bashrc.local
+
+# Must stay last.
+[[ ! ${BLE_VERSION-} ]] || ble-attach
