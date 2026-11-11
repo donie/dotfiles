@@ -1,6 +1,6 @@
 # Agent Guide for `donie/dotfiles`
 
-This repository is a **public** dotfiles repo managed by [chezmoi](https://www.chezmoi.io/). It holds the user's shell, editor, terminal and coding-agent configurations for macOS (primary) and Linux (Debian, Arch; in progress). The plan and its rationale are in `docs/design.md`.
+This repository is a **public** dotfiles repo managed by [chezmoi](https://www.chezmoi.io/). It holds the user's shell, editor, terminal and coding-agent configurations for macOS (primary) and Linux (Debian done, Arch in progress). The plan and its rationale are in `docs/design.md`.
 
 ---
 
@@ -32,19 +32,20 @@ This repository is a **public** dotfiles repo managed by [chezmoi](https://www.c
 ├── home/                   # chezmoi source state (mirrors ~)
 │   ├── .chezmoi.toml.tmpl  # Role prompt, symlink mode
 │   ├── .chezmoiignore      # Per-OS / per-role exclusions
-│   ├── .chezmoiscripts/    # brew bundle, mise install, fisher plugins, agent skills, vim plugins, fonts, hostname, macOS settings, login shell
+│   ├── .chezmoiscripts/    # brew bundle, apt + mise bootstrap (Linux), mise install, fisher plugins, agent skills, vim plugins, fonts, hostname, macOS settings, login shell
 │   ├── dot_config/         # fish, ghostty, mise; symlink_ entries for nvim, mpv, kitty, rex
 │   ├── dot_claude/ dot_codex/ dot_pi/   # Coding agent configs
+│   ├── dot_bashrc          # Linux only (gated in .chezmoiignore)
 │   ├── dot_gitconfig dot_tmux.conf dot_vimrc dot_vim/
 │   ├── _runtime/bin/       # Personal scripts → ~/_runtime/bin
 │   └── private_Library/    # Sublime Text User link (macOS)
-├── packages/               # Brewfile (shared), Brewfile.personal, Brewfile.work, Brewfile.extras (manual)
+├── packages/               # Brewfile (shared), Brewfile.personal, Brewfile.work, Brewfile.extras (manual); apt.txt, apt.dev.txt (devbox)
 ├── agents/                 # Agent tooling: sync scripts, skills manifest, repo-local skills
 ├── nvim/ mpv/ rex/         # Whole-directory configs (linked from home/)
-├── shell/                  # bash (Linux, not yet managed), kitty (linked from home/)
+├── shell/                  # kitty (linked from home/)
 ├── sublime/                # Sublime Text User package (linked from home/)
 ├── tmux/shared.sh          # Unreferenced helper, kept for now
-└── docs/                   # design.md, macos-manual.md, usage.md (updates, upkeep, troubleshooting)
+└── docs/                   # design.md, macos-manual.md, linux-manual.md, usage.md (updates, upkeep, troubleshooting)
 ```
 
 ---
@@ -62,16 +63,19 @@ This repository is a **public** dotfiles repo managed by [chezmoi](https://www.c
 - Watch directory permissions: chezmoi sets a directory's mode from its source name. Existing `0700` directories (e.g. `~/Library`) need `private_` in their source path, or chezmoi will loosen them. Check `chezmoi diff` for `old mode 40…` lines.
 
 ### 3. Cross-platform
-- macOS is primary; Linux support is in progress (`docs/design.md`, phase 6).
-- fish is the macOS login shell (set by `run_after_90-login-shell.sh.tmpl`); Linux uses bash.
+- macOS is primary. Debian/Ubuntu (`devbox`, `server`) is supported; Arch is next (`docs/design.md`, phase 6).
+- Linux setup is in `docs/linux-manual.md`. Test changes on OrbStack VMs: x86_64 (`orb create --arch amd64 debian:trixie <name>`), which is what real servers run, plus arm64.
+- fish is the macOS login shell (set by `run_after_90-login-shell.sh.tmpl`); Linux uses bash (`home/dot_bashrc`). Aliases are kept by hand in both; change one, check the other.
+- Don't hardcode `/Users/<name>` or Homebrew paths in shared configs; use `$HOME`.
 - Gate OS- or role-specific targets in `home/.chezmoiignore`, and OS-specific scripts with `{{ if eq .chezmoi.os "darwin" }}`.
 
 ---
 
 ## Packages
 
+- **apt** (Debian/Ubuntu): `packages/apt.txt` (every Linux role) and `apt.dev.txt` (devbox), installed by `run_onchange_before_10-packages-linux.sh.tmpl`. Only what must be a system package; missing ones are installed, nothing is upgraded.
 - **Homebrew** (macOS only): what must be native: casks, App Store apps, fonts, GNU userland, shells, build toolchains. `packages/Brewfile` is shared by both Macs, `Brewfile.personal` and `Brewfile.work` add per-role apps, `Brewfile.extras` is never installed automatically. The install script never upgrades or removes anything.
-- **mise** (every OS): portable CLI tools and language runtimes. `home/dot_config/mise/config.toml` is the core set (every role); `conf.d/dev.toml` (not on servers) and `conf.d/personal.toml` (mac-personal) are gated in `.chezmoiignore`. Use `os = ["macos"]` / `["linux"]` per tool for OS-specific entries.
+- **mise** (every OS): portable CLI tools and language runtimes. `home/dot_config/mise/config.toml` is the core set (every role); `conf.d/dev.toml` (not on servers) and `conf.d/personal.toml` (mac-personal) are gated in `.chezmoiignore`. Use `os = ["macos"]` / `["linux"]` per tool for OS-specific entries. A core tool must have prebuilt binaries for macOS and Linux on both arm64 and x86_64 (servers have no Rust for cargo builds).
 - Add a CLI tool to mise, not Homebrew, unless it has no mise build for the OS (e.g. `btop` on macOS) or must be a real system binary.
 - Config that shells out to mise tools from non-interactive contexts must use the shims (`$HOME/.local/share/mise/shims/<tool>`), as `home/dot_gitconfig` does for `delta` and `gh`.
 - Python projects use uv; Python CLI tools go in mise as `pipx:<name>`.
