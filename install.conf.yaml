@@ -44,7 +44,8 @@
     ~/.config/mpv:
       path: mpv/
       exclude: [ mpv/watch_later ]
-    ~/_runtime/bin/BBDown: bin/BBDown
+    # BBDown binary is unmanaged until mise installs it from GitHub releases
+    # (docs/design.md, phase 4); bin/BBDown is an outdated copy.
     ~/_runtime/bin/BBDown.config: bin/BBDown.config
     ~/_runtime/bin/code-shell: bin/code-shell
     ~/_runtime/bin/dall: bin/dall

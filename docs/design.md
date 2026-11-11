@@ -104,7 +104,7 @@ the inputs change.
 | Language runtimes | mise (`dev` set) | node, go, ruby, bun |
 | Portable CLI tools | mise (`core` set, aqua or ubi backends) | rg, fd, bat, eza, fzf, delta, jq, gh, nvim |
 | Python tooling | uv | |
-| Prebuilt third-party binaries currently committed to `bin/` | mise github or ubi backend | |
+| Prebuilt third-party binaries currently committed to `bin/` | mise github or ubi backend | BBDown (then delete `bin/BBDown`) |
 
 The mise config is a template. The `core` set is installed on every role,
 and `dev` is added on every role except `server`. This replaces nvm, rbenv
