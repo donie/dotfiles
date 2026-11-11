@@ -1,6 +1,6 @@
 # Dotfiles redesign
 
-Status: **in progress**. Phases 1–5 are done, phase 4 on macOS only (see [Migration plan](#migration-plan));
+Status: **in progress**. Phases 1–5 and 7 are done, phase 4 on macOS only; phase 6 (Linux) is next (see [Migration plan](#migration-plan));
 dotbot is gone and chezmoi manages everything. `AGENTS.md` describes the
 current state.
 
@@ -240,8 +240,9 @@ merging.
 6. **Linux.** Templated bashrc on the devbox, then server, then Arch.
    First, confirm the pilot on Debian: `chezmoi init --apply` with role
    `server` installs `.gitconfig` and skips fish and gallery-dl.
-7. **Retire the private submodule**, once D3 and D4 cover everything it
-   held.
+7. **Retire the private submodule.** *Done.* Secrets moved to the password
+   manager (D3), licensed fonts to cloud storage (D4) and package lists to
+   `packages/`. The private repo is archived on GitHub, not deleted.
 8. **CI (optional).** Debian and Arch containers run
    `chezmoi init --apply` with role `server`.
 

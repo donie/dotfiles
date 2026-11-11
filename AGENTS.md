@@ -20,7 +20,6 @@ This repository is a **public** dotfiles repo managed by [chezmoi](https://www.c
 | This repo | Everything that can be public |
 | Password manager | Secrets, read by `create_private_*.tmpl` templates |
 | iCloud Drive `Documents/Setups/fonts/` | Licensed fonts, installed by a script; never in Git |
-| `dotfiles-private/` submodule | Being retired (phase 7); no longer used by `./install` |
 
 ---
 
@@ -45,30 +44,24 @@ This repository is a **public** dotfiles repo managed by [chezmoi](https://www.c
 ├── shell/                  # bash (Linux, not yet managed), kitty (linked from home/)
 ├── sublime/                # Sublime Text User package (linked from home/)
 ├── tmux/shared.sh          # Unreferenced helper, kept for now
-├── docs/                   # design.md, macos-manual.md
-└── dotfiles-private/       # PRIVATE submodule (being retired) — see rule 1
+└── docs/                   # design.md, macos-manual.md
 ```
 
 ---
 
 ## ⚠️ Critical Rules for Agents
 
-### 1. NEVER modify `dotfiles-private`
-- It contains confidential data and licensed material.
-- Do **not** read files inside it beyond names and sizes unless the user explicitly asks.
-- Do **not** commit changes inside it, or expose its paths or contents in commit messages, PRs or docs.
-
-### 2. Secrets and licensed assets
+### 1. Secrets and licensed assets
 - Never commit literal secrets, encrypted or not. Secret-bearing configs are `create_private_*.tmpl` templates that read values from the password manager (currently `bitwardenFields`). Never print vault values.
 - `create_` means the vault is only read when the target doesn't exist yet; everyday `chezmoi apply` doesn't need an unlocked vault.
 - `home/dot_pi/agent/web-search.json` must stay credential-free. If a provider key is ever needed, use a `"$ENV_VAR"` or `"!command"` credential source, never a literal key.
 - Licensed assets (fonts) never enter the repo.
 
-### 3. One owner per path
+### 2. One owner per path
 - Every target in `~` is managed by chezmoi or by nothing. When adding a config, add it under `home/`; when removing one, delete it from `home/` and remove the now-dangling target by hand (chezmoi doesn't clean up like dotbot did; use `home/.chezmoiremove` if needed).
 - Watch directory permissions: chezmoi sets a directory's mode from its source name. Existing `0700` directories (e.g. `~/Library`) need `private_` in their source path, or chezmoi will loosen them. Check `chezmoi diff` for `old mode 40…` lines.
 
-### 4. Cross-platform
+### 3. Cross-platform
 - macOS is primary; Linux support is in progress (`docs/design.md`, phase 6).
 - fish is the macOS login shell (set by `run_after_90-login-shell.sh.tmpl`); Linux uses bash.
 - Gate OS- or role-specific targets in `home/.chezmoiignore`, and OS-specific scripts with `{{ if eq .chezmoi.os "darwin" }}`.
@@ -119,5 +112,4 @@ Before claiming changes are complete:
 - [ ] `chezmoi diff` shows only intended changes (including no unexpected `old mode 40…` directory permission changes).
 - [ ] `chezmoi status` is clean after `./install` (` R` lines for `run_after_` scripts are expected).
 - [ ] Rendered scripts pass `chezmoi execute-template < <script.tmpl> | sh -n`.
-- [ ] No files were created inside `dotfiles-private/`.
 - [ ] No secrets, tokens or licensed assets were added to the repo.

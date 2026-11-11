@@ -15,3 +15,6 @@ shell/fish/fish_variables
 
 # pi working directory
 .pi/
+
+# Retired private submodule: never commit a local copy
+dotfiles-private/

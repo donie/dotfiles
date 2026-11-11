@@ -1,13 +1,20 @@
 {{- if and (eq .chezmoi.os "darwin") (hasKey . "hostname") -}}
 #!/bin/sh
 # Keep all three macOS machine names equal to the hostname chosen at
-# `chezmoi init`. macOS renames LocalHostName (e.g. to name-2) when it sees a
-# clash on the network; this puts it back. No-op when the names match.
+# `chezmoi init`. No-op when they match. macOS appends -N to LocalHostName
+# (the Bonjour name) when it sees the name taken on the network, e.g. by this
+# Mac itself on both Wi-Fi and Ethernet; that's accepted as a match, since
+# macOS would just rename it again.
 set -u
 want={{ .hostname | quote }}
 fix=""
 for name in ComputerName LocalHostName HostName; do
-    [ "$(scutil --get "$name" 2>/dev/null)" = "$want" ] || fix="$fix $name"
+    have=$(scutil --get "$name" 2>/dev/null || true)
+    [ "$have" = "$want" ] && continue
+    if [ "$name" = LocalHostName ] && expr "$have" : "$want-[0-9][0-9]*\$" >/dev/null; then
+        continue
+    fi
+    fix="$fix $name"
 done
 [ -n "$fix" ] || exit 0
 
