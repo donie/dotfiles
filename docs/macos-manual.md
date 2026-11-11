@@ -8,6 +8,11 @@ everything else.
 
 - [ ] Sign in to the App Store, so `mas` can install the App Store apps in
       the Brewfiles.
+- [ ] Sign in to iCloud and make sure the licensed fonts are fully
+      downloaded: in Finder, right-click iCloud Drive > Documents > Setups >
+      fonts and choose **Keep Downloaded**. With "Optimize Mac Storage" on,
+      iCloud may keep only placeholders, which the font script can't read;
+      it skips them with a warning, and a later `./install` picks them up.
 - [ ] mac-personal only: install and unlock the password manager CLI, so
       chezmoi can create secret-bearing configs on the first run. The
       Brewfile installs `bitwarden-cli` too, but chezmoi needs it earlier.

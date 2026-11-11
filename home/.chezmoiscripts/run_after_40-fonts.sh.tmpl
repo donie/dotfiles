@@ -10,7 +10,14 @@ dest="$HOME/Library/Fonts"
 mkdir -p "$dest"
 for zip in "$src"/*.zip; do
     [ -f "$zip" ] || continue
-    unzip -Z1 "$zip" | grep -v '^__MACOSX/' | grep -Ei '\.(ttf|otf)$' |
+    # With "Optimize Mac Storage", iCloud may keep only a placeholder; reading
+    # it then fails instead of downloading. Skip with a hint rather than fail.
+    if ! entries=$(unzip -Z1 "$zip" 2>/dev/null); then
+        echo "warning: can't read $(basename "$zip"); it's probably not downloaded from iCloud yet." >&2
+        echo "         In Finder, right-click Documents/Setups/fonts > Keep Downloaded, wait, then rerun ./install" >&2
+        continue
+    fi
+    printf '%s\n' "$entries" | grep -v '^__MACOSX/' | grep -Ei '\.(ttf|otf)$' |
         while IFS= read -r entry; do
             name=$(basename "$entry")
             [ -e "$dest/$name" ] && continue
