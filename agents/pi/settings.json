@@ -1,5 +1,5 @@
 {
-  "lastChangelogVersion": "1.1.0",
+  "lastChangelogVersion": "1.5.2",
   "defaultProvider": "deepseek",
   "defaultModel": "deepseek-flash",
   "npmCommand": [
@@ -32,13 +32,25 @@
   "deviceId": "7aa4efe4-e7a7-4dfa-8134-b718d52c33c8",
   "enabledModels": [
     "deepseek/deepseek-flash",
-    "anthropic/claude-fable-5-1",
     "anthropic/claude-haiku-5-5",
     "anthropic/claude-opus-5-5",
     "anthropic/claude-sonnet-5-5",
-    "deepseek/deepseek-v4-pro",
+    "openai/gpt-6.1-sol",
     "openai/gpt-6-astra",
+    "openai/gpt-6.1-terra",
     "openai/gpt-6-luna",
-    "openai/gpt-6.1-sol"
-  ]
+    "anthropic/claude-fable-5-2"
+  ],
+  "extensionChangelogVersions": {
+    "{\"source\":\"npm:pi-mono-btw\",\"scope\":\"user\"}": "1.7.4",
+    "{\"source\":\"npm:pi-mono-context\",\"scope\":\"user\"}": "0.1.1",
+    "{\"source\":\"npm:pi-mono-loop\",\"scope\":\"user\"}": "1.7.3",
+    "{\"source\":\"npm:pi-mono-clear\",\"scope\":\"user\"}": "1.7.3",
+    "{\"source\":\"npm:pi-mono-multi-edit\",\"scope\":\"user\"}": "2.0.0",
+    "{\"source\":\"npm:pi-mono-simplify\",\"scope\":\"user\"}": "1.7.3",
+    "{\"source\":\"npm:pi-web-access\",\"scope\":\"user\"}": "0.47.0",
+    "{\"source\":\"npm:pi-agent-browser-native\",\"scope\":\"user\"}": "0.9.18",
+    "{\"source\":\"npm:pi-subagents\",\"scope\":\"user\"}": "0.88.0",
+    "{\"source\":\"npm:pi-thinking-steps\",\"scope\":\"user\"}": "1.2.0"
+  }
 }

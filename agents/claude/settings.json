@@ -1,4 +1,17 @@
 {
+  "hooks": {
+    "SubagentStart": [
+      {
+        "matcher": "tldraw-offline",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh '/Users/donie/skills/tldraw-offline/inject-server-context.sh' SubagentStart"
+          }
+        ]
+      }
+    ]
+  },
   "statusLine": {
     "type": "command",
     "command": "bash /Users/donie/.claude/statusline-command.sh"
@@ -20,17 +33,5 @@
   "effortLevel": "medium",
   "tui": "fullscreen",
   "voiceEnabled": true,
-  "hooks": {
-    "SubagentStart": [
-      {
-        "matcher": "tldraw-offline",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "sh '/Users/donie/skills/tldraw-offline/inject-server-context.sh' SubagentStart"
-          }
-        ]
-      }
-    ]
-  }
+  "autoCompactEnabled": false
 }
