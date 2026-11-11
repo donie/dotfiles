@@ -1,0 +1,31 @@
+# Debian/Ubuntu packages for every Linux role, installed by
+# home/.chezmoiscripts/run_onchange_before_10-packages-linux.sh.tmpl.
+# Only what must be a system package (shell, git, build tools, network
+# diagnostics). Portable CLI tools come from mise (home/dot_config/mise).
+
+# base
+bash-completion
+ca-certificates
+curl
+git
+git-lfs
+gnupg
+less
+locales
+openssh-client
+rsync
+tmux
+tree
+unzip
+vim
+wget
+xz-utils
+
+# archives
+7zip
+
+# network
+iperf3
+mtr-tiny
+nmap
+prettyping

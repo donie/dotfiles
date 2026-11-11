@@ -1,0 +1,42 @@
+{{- if and (eq .chezmoi.os "linux") (lookPath "apt-get") -}}
+{{- $repo := .chezmoi.workingTree -}}
+#!/bin/sh
+# Install the apt packages in packages/apt.txt, plus apt.dev.txt on the
+# devbox. Only missing packages are installed, so sudo is needed only when
+# something is missing; nothing is ever upgraded or removed (`apt upgrade`
+# stays manual). Reruns whenever a list changes:
+# apt.txt sha256: {{ include (joinPath $repo "packages/apt.txt") | sha256sum }}
+{{- if eq .role "devbox" }}
+# apt.dev.txt sha256: {{ include (joinPath $repo "packages/apt.dev.txt") | sha256sum }}
+{{- end }}
+set -eu
+
+wanted=$(sed 's/#.*//' <<'EOF' | tr -s ' \t\n' '\n' | sed '/^$/d'
+{{ include (joinPath $repo "packages/apt.txt") }}
+{{- if eq .role "devbox" }}
+{{ include (joinPath $repo "packages/apt.dev.txt") }}
+{{- end }}
+EOF
+)
+
+missing=""
+for pkg in $wanted; do
+    status=$(dpkg-query -W -f='${db:Status-Status}' "$pkg" 2>/dev/null || true)
+    [ "$status" = installed ] || missing="$missing $pkg"
+done
+[ -n "$missing" ] || exit 0
+
+if [ "$(id -u)" -eq 0 ]; then
+    sudo=""
+elif command -v sudo >/dev/null 2>&1; then
+    sudo="sudo"
+else
+    echo "apt packages missing and sudo is not available:$missing" >&2
+    exit 0
+fi
+
+echo "Installing apt packages:$missing"
+$sudo apt-get update -qq
+# shellcheck disable=SC2086 # word splitting is intended
+$sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y -qq $missing
+{{ end -}}

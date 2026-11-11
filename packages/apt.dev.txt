@@ -1,0 +1,12 @@
+# Extra Debian/Ubuntu packages for the devbox role: toolchains and the
+# libraries mise needs to build runtimes from source (ruby) and that nvim's
+# tree-sitter parsers compile against.
+
+build-essential
+cmake
+pkg-config
+libffi-dev
+libreadline-dev
+libssl-dev
+libyaml-dev
+zlib1g-dev

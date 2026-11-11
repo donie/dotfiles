@@ -22,8 +22,7 @@ jq = "latest"
 neovim = "latest"
 ripgrep = "latest"
 shellcheck = "latest"
-tlrc = "latest"
-tokei = "latest"
+"github:tldr-pages/tlrc" = "latest"  # the aqua entry lacks linux-arm64, which upstream ships
 uv = "latest"
 "github:dalance/procs" = "latest"
 # The release also ships `ntr` and `nexttrace-tiny`; pin the full build.
