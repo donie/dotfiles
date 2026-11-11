@@ -4,7 +4,6 @@
 # Applied by home/.chezmoiscripts/run_onchange_before_05-homebrew.sh.tmpl.
 
 tap "buo/cask-upgrade"
-tap "natesales/repo"
 
 # Shell and core tools
 brew "fish"
@@ -49,7 +48,7 @@ brew "aria2"
 brew "httpie"
 brew "hey"
 brew "nali"
-brew "natesales/repo/q"
+brew "q"
 brew "prettyping"
 
 # Media and files
@@ -95,7 +94,6 @@ cask "sloth"
 cask "latest"
 cask "keycastr"
 cask "transmit"
-cask "screens"
 cask "tailscale-app"
 cask "namechanger"
 cask "imageoptim"
@@ -141,10 +139,8 @@ mas "PDF Expert", id: 1055273043
 mas "Keynote", id: 409183694
 mas "Pages", id: 409201541
 mas "Windows App", id: 1295203466
-mas "Redacted", id: 984968384
 mas "Xcode", id: 497799835
 mas "TestFlight", id: 899247664
-mas "Contrast", id: 1254981365
 mas "Gapplin", id: 768053424
 mas "Gifski", id: 1351639930
 mas "Unsqueeze", id: 6475134617
