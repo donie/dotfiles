@@ -8,9 +8,15 @@ everything else.
 
 - [ ] Sign in to the App Store, so `mas` can install the App Store apps in
       the Brewfiles.
-- [ ] Log in to the password manager CLI (`bw login`, then
-      `set -gx BW_SESSION (bw unlock --raw)`) if this Mac gets
-      secret-bearing configs (role `mac-personal`).
+- [ ] mac-personal only: install and unlock the password manager CLI, so
+      chezmoi can create secret-bearing configs on the first run. The
+      Brewfile installs `bitwarden-cli` too, but chezmoi needs it earlier.
+      ```fish
+      brew install bitwarden-cli
+      bw login
+      set -gx BW_SESSION (bw unlock --raw)
+      ```
+      Run `./install` in the same shell.
 
 - [ ] Run `./install` from a terminal: it asks for the role and hostname,
       and needs your password once to set the hostname and the login shell.
@@ -56,7 +62,8 @@ everything else.
 
 For a Mac that still has the dotbot-based checkout of this repo.
 
-1. `brew install chezmoi`, then `git -C ~/dotfiles pull`. Warnings that
+1. `brew install chezmoi` (plus `bitwarden-cli` on mac-personal), then
+   `git -C ~/dotfiles pull`. Warnings that
    `dotbot` and `dotfiles-private` can't be removed are expected: Git leaves
    the old submodule directories behind.
 2. mac-personal only: unlock the password manager CLI (see "Before
