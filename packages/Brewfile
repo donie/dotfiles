@@ -94,7 +94,6 @@ cask "sloth"
 cask "latest"
 cask "keycastr"
 cask "transmit"
-cask "tailscale-app"
 cask "namechanger"
 cask "imageoptim"
 

@@ -40,6 +40,9 @@ cask "steam"
 cask "league-of-legends"
 cask "moonlight"
 
+# Network (kept off the work Mac: remote-access tools are a policy concern there)
+cask "tailscale-app"
+
 # Storage
 cask "google-drive"
 cask "daisydisk"
