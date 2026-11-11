@@ -20,7 +20,7 @@ This repository is a **public** dotfiles repo managed by [chezmoi](https://www.c
 | This repo | Everything that can be public |
 | Password manager | Secrets, read by `create_private_*.tmpl` templates |
 | iCloud Drive `Documents/Setups/fonts/` | Licensed fonts, installed by a script; never in Git |
-| `dotfiles-private/` submodule | Being retired: now only the Brewfiles, until phase 4 |
+| `dotfiles-private/` submodule | Being retired (phase 7); no longer used by `./install` |
 
 ---
 
@@ -33,18 +33,19 @@ This repository is a **public** dotfiles repo managed by [chezmoi](https://www.c
 ├── home/                   # chezmoi source state (mirrors ~)
 │   ├── .chezmoi.toml.tmpl  # Role prompt, symlink mode
 │   ├── .chezmoiignore      # Per-OS / per-role exclusions
-│   ├── .chezmoiscripts/    # fisher plugins, agent skills, vim plugins, fonts, login shell
-│   ├── dot_config/         # fish, ghostty; symlink_ entries for nvim, mpv, kitty, rex
+│   ├── .chezmoiscripts/    # brew bundle, mise install, fisher plugins, agent skills, vim plugins, fonts, login shell
+│   ├── dot_config/         # fish, ghostty, mise; symlink_ entries for nvim, mpv, kitty, rex
 │   ├── dot_claude/ dot_codex/ dot_pi/   # Coding agent configs
 │   ├── dot_gitconfig dot_tmux.conf dot_vimrc dot_vim/
 │   ├── _runtime/bin/       # Personal scripts → ~/_runtime/bin
 │   └── private_Library/    # Sublime Text User link (macOS)
+├── packages/               # Brewfile (shared), Brewfile.personal, Brewfile.extras (manual)
 ├── agents/                 # Agent tooling: sync scripts, skills manifest, repo-local skills
 ├── nvim/ mpv/ rex/         # Whole-directory configs (linked from home/)
 ├── shell/                  # bash (Linux, not yet managed), kitty (linked from home/)
 ├── sublime/                # Sublime Text User package (linked from home/)
 ├── tmux/shared.sh          # Unreferenced helper, kept for now
-├── docs/                   # design.md
+├── docs/                   # design.md, macos-manual.md
 └── dotfiles-private/       # PRIVATE submodule (being retired) — see rule 1
 ```
 
@@ -73,6 +74,14 @@ This repository is a **public** dotfiles repo managed by [chezmoi](https://www.c
 - Gate OS- or role-specific targets in `home/.chezmoiignore`, and OS-specific scripts with `{{ if eq .chezmoi.os "darwin" }}`.
 
 ---
+
+## Packages
+
+- **Homebrew** (macOS only): what must be native: casks, App Store apps, fonts, GNU userland, shells, build toolchains. `packages/Brewfile` is shared by both Macs, `Brewfile.personal` adds personal apps, `Brewfile.extras` is never installed automatically. The install script never upgrades or removes anything.
+- **mise** (every OS): portable CLI tools and language runtimes. `home/dot_config/mise/config.toml` is the core set (every role); `conf.d/dev.toml` (not on servers) and `conf.d/personal.toml` (mac-personal) are gated in `.chezmoiignore`. Use `os = ["macos"]` / `["linux"]` per tool for OS-specific entries.
+- Add a CLI tool to mise, not Homebrew, unless it has no mise build for the OS (e.g. `btop` on macOS) or must be a real system binary.
+- Config that shells out to mise tools from non-interactive contexts must use the shims (`$HOME/.local/share/mise/shims/<tool>`), as `home/dot_gitconfig` does for `delta` and `gh`.
+- Python projects use uv; Python CLI tools go in mise as `pipx:<name>`.
 
 ## Agent Configurations
 

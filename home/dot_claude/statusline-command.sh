@@ -102,7 +102,7 @@ if [ -n "$transcript" ] && [ -f "$transcript" ]; then
   if [ -n "$last_user_text" ]; then
     tmp_txt=$(mktemp /tmp/statusline-text.XXXXXX)
     printf '%s' "$last_user_text" > "$tmp_txt"
-    corrections=$(/Users/donie/.local/bin/uv run --quiet \
+    corrections=$("$HOME/.local/share/mise/shims/uv" run --quiet \
       /Users/donie/.claude/statusline-spellcheck.py "$tmp_txt" 2>/dev/null)
     rm -f "$tmp_txt"
 

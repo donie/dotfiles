@@ -1,0 +1,33 @@
+# mise core set: every machine and role, including servers.
+# Role-specific sets live in conf.d/ (gated by home/.chezmoiignore):
+#   conf.d/dev.toml       every role except server
+#   conf.d/personal.toml  mac-personal only
+# This file is a symlink into the dotfiles repo, so `mise use -g` edits it there.
+
+[tools]
+bat = "latest"
+btop = { version = "latest", os = ["linux"] }  # macOS: Homebrew (no mac build in mise)
+delta = "latest"
+direnv = "latest"
+doggo = "latest"
+dust = "latest"
+eza = "latest"
+fastfetch = "latest"
+fd = "latest"
+fzf = "latest"
+gdu = "latest"
+gh = "latest"
+gping = "latest"
+jq = "latest"
+neovim = "latest"
+ripgrep = "latest"
+shellcheck = "latest"
+tlrc = "latest"
+tokei = "latest"
+uv = "latest"
+"github:dalance/procs" = "latest"
+# The release also ships `ntr` and `nexttrace-tiny`; pin the full build.
+"github:nxtrace/NTrace-core" = { version = "latest", bin = "nexttrace", asset_pattern = 'nexttrace_{{ os(macos="darwin") }}_{{ arch(x64="amd64") }}' }
+"pipx:qrcode" = "latest"
+"pipx:m3u8dl" = { version = "latest", os = ["macos"] }
+"pipx:asitop" = { version = "latest", os = ["macos"] }

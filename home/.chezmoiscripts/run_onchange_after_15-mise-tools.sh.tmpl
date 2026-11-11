@@ -1,0 +1,15 @@
+#!/bin/sh
+# Install the tools in the mise config (~/.config/mise). Reruns whenever any
+# mise config file in this repo changes:
+# config.toml sha256:   {{ include "dot_config/mise/config.toml" | sha256sum }}
+# dev.toml sha256:      {{ include "dot_config/mise/conf.d/dev.toml" | sha256sum }}
+# personal.toml sha256: {{ include "dot_config/mise/conf.d/personal.toml" | sha256sum }}
+set -eu
+mise=$(command -v mise || true)
+[ -n "$mise" ] || [ ! -x "$HOME/.local/bin/mise" ] || mise="$HOME/.local/bin/mise"
+if [ -z "$mise" ]; then
+    echo "mise is not installed; skipping tools (macOS: brew install mise; Linux: curl https://mise.run | sh)" >&2
+    exit 0
+fi
+cd "$HOME" # use the global config only, not a project's
+"$mise" install --yes

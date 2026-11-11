@@ -24,7 +24,11 @@ _runtime
 .gallery-dl.conf
 {{ end }}
 
-{{ if not (stat (joinPath .chezmoi.workingTree "dotfiles-private/brewfile")) }}
-# Until the Brewfile moves into this repo (docs/design.md, phase 4).
-_runtime/Brewfile
+{{ if eq .role "server" }}
+# mise dev set (runtimes, dev tools) is for workstations and the devbox.
+.config/mise/conf.d/dev.toml
+{{ end }}
+
+{{ if ne .role "mac-personal" }}
+.config/mise/conf.d/personal.toml
 {{ end }}

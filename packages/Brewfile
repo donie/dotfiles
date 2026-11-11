@@ -1,0 +1,152 @@
+# Shared Homebrew packages: every Mac (mac-personal and mac-work).
+# Portable CLI tools and language runtimes are NOT here; mise owns them
+# (home/dot_config/mise/). Brew keeps what must be native to macOS.
+# Applied by home/.chezmoiscripts/run_onchange_before_05-homebrew.sh.tmpl.
+
+tap "buo/cask-upgrade"
+tap "natesales/repo"
+
+# Shell and core tools
+brew "fish"
+brew "tmux"
+brew "vim"
+brew "git"
+brew "git-lfs"
+brew "gnupg"
+brew "chezmoi"
+brew "mise"
+brew "mas"
+brew "bitwarden-cli"
+
+# GNU userland (replaces the BSD versions macOS ships)
+brew "coreutils"
+brew "findutils"
+brew "gawk"
+brew "gnu-getopt"
+brew "gnu-indent"
+brew "gnu-sed"
+brew "gnu-tar"
+brew "gnu-which"
+brew "grep"
+brew "make"
+brew "less"
+brew "rsync"
+brew "wget"
+brew "watch"
+brew "btop"  # mise has no macOS build; Linux gets it from mise
+brew "tree"
+brew "p7zip"
+brew "unar"
+brew "perl"
+
+# Network
+brew "mtr"
+brew "nmap"
+brew "iftop"
+brew "bandwhich"
+brew "iperf3"
+brew "aria2"
+brew "httpie"
+brew "hey"
+brew "nali"
+brew "natesales/repo/q"
+brew "prettyping"
+
+# Media and files
+brew "ffmpeg"
+brew "yt-dlp"
+brew "exiftool"
+brew "imagemagick"
+brew "pdfgrep"
+brew "ansifilter"
+
+# Dev and macOS helpers
+brew "universal-ctags"
+brew "fileicon"
+brew "terminal-notifier"
+
+# Editors and dev apps
+cask "sublime-text"
+cask "zed"
+cask "typora"
+cask "rapidapi"
+cask "sf-symbols"
+cask "wwdc"
+
+# AI
+cask "claude"
+cask "chatgpt"
+cask "lm-studio"
+
+# Browsers
+cask "firefox@developer-edition"
+cask "ungoogled-chromium"
+cask "thebrowsercompany-dia"
+
+# Utilities
+cask "raycast"
+cask "appcleaner"
+cask "keka"
+cask "shottr"
+cask "find-any-file"
+cask "mac-mouse-fix"
+cask "numi"
+cask "sloth"
+cask "latest"
+cask "keycastr"
+cask "transmit"
+cask "screens"
+cask "tailscale-app"
+cask "namechanger"
+cask "imageoptim"
+
+# Notes and diagrams
+cask "obsidian"
+cask "monodraw"
+cask "tldraw"
+cask "whimsical"
+cask "xmind"
+
+# Communication
+cask "slack"
+cask "zoom"
+
+# Fonts (licensed fonts come from iCloud, see run_after_40-fonts.sh.tmpl)
+cask "font-camingocode"
+cask "font-commit-mono-nerd-font"
+cask "font-fira-code-nerd-font"
+cask "font-jetbrains-mono-nerd-font"
+cask "font-lxgw-wenkai"
+cask "font-maple-mono"
+cask "font-new-york"
+cask "font-sarasa-gothic"
+cask "font-sf-compact"
+cask "font-sf-mono"
+cask "font-sf-pro"
+cask "font-symbols-only-nerd-font"
+
+# Mac App Store (requires being signed in to the App Store)
+mas "Bitwarden", id: 1352778147
+mas "The Unarchiver", id: 425424353
+mas "Wipr", id: 1662217862
+mas "Userscripts", id: 1463298887
+mas "Hush", id: 1544743900
+mas "Supercopy", id: 6477720316
+mas "Raycast Companion", id: 6738274497
+mas "Hand Mirror", id: 1502839586
+mas "Things", id: 904280696
+mas "Bear", id: 1091189122
+mas "CotEditor", id: 1024640650
+mas "PDF Expert", id: 1055273043
+mas "Keynote", id: 409183694
+mas "Pages", id: 409201541
+mas "Windows App", id: 1295203466
+mas "Redacted", id: 984968384
+mas "Xcode", id: 497799835
+mas "TestFlight", id: 899247664
+mas "Contrast", id: 1254981365
+mas "Gapplin", id: 768053424
+mas "Gifski", id: 1351639930
+mas "Unsqueeze", id: 6475134617
+mas "Invisor", id: 442947586
+mas "Mactracker", id: 430255202

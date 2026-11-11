@@ -1,9 +1,11 @@
 [init]
     defaultBranch = main
+# delta and gh come from mise. Use its shims so git also works where mise
+# isn't activated (GUI apps, agents, cron).
 [core]
-    pager = delta
+    pager = $HOME/.local/share/mise/shims/delta
 [interactive]
-    diffFilter = delta --color-only
+    diffFilter = $HOME/.local/share/mise/shims/delta --color-only
 [delta]
     navigate = true
     dark = true
@@ -20,7 +22,7 @@
     clean = git-lfs clean -- %f
 [credential "https://github.com"]
 	helper =
-	helper = !gh auth git-credential
+	helper = !$HOME/.local/share/mise/shims/gh auth git-credential
 [credential "https://gist.github.com"]
 	helper =
-	helper = !gh auth git-credential
+	helper = !$HOME/.local/share/mise/shims/gh auth git-credential

@@ -1,0 +1,66 @@
+# Personal Mac only (role mac-personal), on top of the shared Brewfile.
+
+# mpv and its build toolchain (bin script build-mpv)
+brew "mpv"
+brew "cmake"
+brew "meson"
+brew "pkgconf"
+brew "dylibbundler"
+brew "luajit-openresty"
+
+brew "handbrake"
+brew "telegram-downloader"
+brew "ollama"
+
+# Media
+cask "iina"
+cask "vlc"
+cask "spotify"
+cask "vox"
+cask "handbrake-app"
+cask "subler"
+cask "mkvtoolnix-app"
+cask "mp4tools"
+cask "ff-works"
+cask "upscayl"
+cask "macwhisper"
+cask "screenkite"
+
+# Reading, photos
+cask "calibre"
+cask "powerphotos"
+
+# Chat (telegram-desktop provides the session tdl logs in with)
+cask "discord"
+cask "telegram"
+cask "telegram-desktop"
+
+# Games and streaming
+cask "steam"
+cask "league-of-legends"
+cask "moonlight"
+
+# Storage
+cask "google-drive"
+cask "daisydisk"
+cask "balenaetcher"
+cask "phoenix-slides"
+
+mas "Final Cut Pro", id: 424389933
+mas "Compressor", id: 424390742
+mas "Photomator", id: 1444636541
+mas "Pixelmator Pro", id: 1289583905
+mas "PhotoSweeper", id: 463362050
+mas "GeoTag", id: 1465180184
+mas "Infuse", id: 1136220934
+mas "SenPlayer", id: 6443975850
+mas "APTV", id: 1630403500
+mas "DaftCloud", id: 1320450034
+mas "Just Press Record", id: 1033342465
+mas "GarageBand", id: 682658836
+mas "Steam Link", id: 1246969117
+mas "Reeder", id: 1529448980
+mas "Simple Comic", id: 1497435571
+mas "Welly", id: 1521402269
+mas "WhatsApp", id: 310633997
+mas "Finances", id: 1218241304
