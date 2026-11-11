@@ -32,7 +32,7 @@ This repository is a **public** dotfiles managed by [dotbot](https://github.com/
 ├── dotbot/                 # Dotbot submodule (GitHub: anishathalye/dotbot)
 ├── dotfiles-private/       # PRIVATE submodule — see warning below
 ├── agents/                 # Coding agent configs (claude, codex, pi, skills)
-├── shell/                  # Shell configs (fish, zsh, git, kitty, ghostty, wezterm)
+├── shell/                  # Shell configs (fish, bash, git, kitty, ghostty)
 ├── nvim/                   # Neovim configuration (Lua-based)
 ├── vim/                    # Vim configuration + vim-plug bootstrap
 ├── tmux/                   # tmux config
@@ -43,7 +43,7 @@ This repository is a **public** dotfiles managed by [dotbot](https://github.com/
 
 ### Symlink Targets (from `install.conf.yaml`)
 - `agents/*` → `~/.claude/*`, `~/.codex/*`, `~/.pi/agent/*`
-- `shell/*` → `~/.config/*`, `~/.zshrc`, `~/.gitconfig`
+- `shell/*` → `~/.config/*`, `~/.gitconfig`
 - `nvim/` → `~/.config/nvim`
 - `vim/vimrc` → `~/.vimrc`
 - `tmux/tmux.conf` → `~/.tmux.conf`
