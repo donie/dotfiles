@@ -39,7 +39,7 @@ This repository is a **public** dotfiles repo managed by [chezmoi](https://www.c
 │   ├── dot_gitconfig dot_tmux.conf dot_vimrc dot_vim/
 │   ├── _runtime/bin/       # Personal scripts → ~/_runtime/bin
 │   └── private_Library/    # Sublime Text User link (macOS)
-├── packages/               # Brewfile (shared), Brewfile.personal, Brewfile.work, Brewfile.extras (manual); apt.txt, pacman.txt (+ .dev.txt for the devbox)
+├── packages/               # Brewfile (shared), Brewfile.personal, Brewfile.work, Brewfile.extras (manual); apt.txt, pacman.txt (+ .dev.txt for the devbox), locales.txt (Linux)
 ├── agents/                 # Agent tooling: sync scripts, skills manifest, repo-local skills
 ├── nvim/ mpv/ rex/         # Whole-directory configs (linked from home/)
 ├── shell/                  # kitty (linked from home/)

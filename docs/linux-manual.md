@@ -3,6 +3,30 @@
 Setting up a Debian, Ubuntu or Arch machine (roles `devbox` and `server`).
 For everyday use afterwards see `usage.md`.
 
+## Before the bootstrap: sudo (minimal installs)
+
+The bootstrap runs as your normal user and uses sudo for system packages and
+locales. Cloud images and most installers already set this up. A minimal
+install where you gave a root password (Debian's netinst, Arch) has no sudo,
+so do this once as root (`su -`), replacing `donie` with your user:
+
+```sh
+# Debian, Ubuntu
+apt install sudo curl
+usermod -aG sudo donie
+
+# Arch: also enable the wheel group, which the stock sudoers leaves commented out
+pacman -S sudo
+usermod -aG wheel donie
+echo '%wheel ALL=(ALL:ALL) ALL' > /etc/sudoers.d/10-wheel
+chmod 440 /etc/sudoers.d/10-wheel
+```
+
+Log out and back in so the new group applies, and check with `sudo true`.
+This stays manual on purpose: chezmoi runs unprivileged and can't grant
+itself root, and who gets root on a machine should be a visible, deliberate
+step.
+
 ## Bootstrap
 
 No git, Homebrew or vault login needed. As your normal user (not root), with
@@ -21,7 +45,7 @@ sh -c "$(curl -fsLS get.chezmoi.io)" -- -b ~/.local/bin \
 - Then, in order:
   1. Installs missing system packages from `packages/apt.txt` (Debian,
      Ubuntu) or `packages/pacman.txt` (Arch), plus the matching `.dev.txt`
-     on the devbox, and generates the `en_US.UTF-8` locale. This asks for
+     on the devbox, and sets up the locales (see below). This asks for
      your sudo password. On Arch, installing runs a full `pacman -Syu`
      (Arch doesn't support partial upgrades), so the first apply also
      upgrades the system.
@@ -66,7 +90,14 @@ The devbox takes about 4 minutes, and a server about 1, on either distro.
   default).
 - **Login shell.** It stays bash. Login shells read `~/.bashrc` through
   Debian's `~/.profile` or Arch's `~/.bash_profile`.
-- **Locale.** macOS terminals and ssh pass `LANG`/`LC_ALL=en_US.UTF-8` to
-  the server, and fresh Debian and Arch installs don't have that locale
-  generated, so every shell would start with `setlocale` warnings. The
-  packages script generates it.
+- **Locales.** The packages script generates every locale in
+  `packages/locales.txt` (`en_US.UTF-8`, `zh_CN.UTF-8`, `ja_JP.UTF-8`) and
+  makes the first one the system default (`LANG` in `/etc/default/locale`
+  on Debian, `/etc/locale.conf` on Arch), which cron, services and the
+  console use. An existing default is kept, unless it's only a fallback
+  (`C`, `C.UTF-8`, `POSIX`). Without this, fresh installs lack
+  `en_US.UTF-8`, and since macOS terminals and ssh pass
+  `LANG`/`LC_ALL=en_US.UTF-8` along, every shell would start with
+  `setlocale` warnings. Any UTF-8 locale handles Chinese and Japanese
+  text; zh_CN and ja_JP add localized dates, messages and sorting for
+  programs run with them, e.g. `LC_TIME=ja_JP.UTF-8 date`.

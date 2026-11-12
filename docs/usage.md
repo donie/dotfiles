@@ -30,7 +30,7 @@ Scripts in `home/.chezmoiscripts/` follow their name prefix:
 
 | Prefix | Ours | Runs |
 |---|---|---|
-| `run_onchange_` | Homebrew, apt or pacman (Linux), mise tools, fisher, agent skills, vim plugins, macOS settings | When the rendered script changes. Each embeds a checksum of its inputs (Brewfile, apt/pacman list, mise config, vimrc, …), so changing an input reruns it. |
+| `run_onchange_` | Homebrew, apt or pacman (Linux), mise tools, fisher, agent skills, vim plugins, macOS settings | When the rendered script changes. Each embeds a checksum of its inputs (Brewfile, apt/pacman list, locales, mise config, vimrc, …), so changing an input reruns it. |
 | `run_once_` | dotbot link cleanup, mise install (Linux) | Once per machine |
 | `run_after_` | fonts, hostname, login shell | Every apply; they check first and exit when there's nothing to do |
 

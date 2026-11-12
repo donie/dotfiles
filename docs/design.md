@@ -86,7 +86,7 @@ nvim/  mpv/  rex/  shell/kitty/  sublime/   # app-written dirs, linked whole
   .chezmoiscripts/
     run_onchange_before_05-homebrew.sh.tmpl          # brew bundle; reruns when a Brewfile changes
     run_onchange_after_15-mise-tools.sh.tmpl         # mise install; reruns when the mise config changes
-    run_onchange_before_10-packages-linux.sh.tmpl    # apt or pacman, missing packages only; en_US.UTF-8
+    run_onchange_before_10-packages-linux.sh.tmpl    # apt or pacman, missing packages only; locales
     run_once_before_11-mise-linux.sh.tmpl            # mise to ~/.local/bin via mise.run
     run_after_45-hostname.sh.tmpl                    # macOS machine names, from the init prompt
     run_onchange_after_50-macos-defaults.sh.tmpl     # macOS settings
@@ -100,6 +100,7 @@ packages/
   apt.txt                 # every Linux role
   apt.dev.txt             # devbox: toolchain and build libraries
   pacman.txt  pacman.dev.txt  # Arch twins of the apt lists
+  locales.txt             # Linux locales; the first is the system default
 ```
 
 `run_onchange_` scripts embed a hash of their inputs, for example
@@ -259,8 +260,11 @@ merging.
    apt or pacman. Arch doesn't support partial upgrades (`pacman -Sy pkg`),
    so when something is missing the script runs `pacman -Syu --needed`, a
    full upgrade; when nothing is missing it does nothing. Both distros also
-   get the `en_US.UTF-8` locale generated, because macOS terminals and ssh
-   pass it along and shells warn when it's missing.
+   get the locales in `packages/locales.txt` (en_US, zh_CN, ja_JP) generated,
+   and en_US becomes the system default unless one is already chosen.
+   Getting sudo onto a minimal install stays a documented manual step
+   (`docs/linux-manual.md`): chezmoi runs unprivileged and can't grant
+   itself root.
 7. **Retire the private submodule.** *Done.* Secrets moved to the password
    manager (D3), licensed fonts to cloud storage (D4) and package lists to
    `packages/`. The private repo is archived on GitHub, not deleted.
