@@ -137,6 +137,12 @@ Exceptions and gotchas:
   `github:` backend.
 - mise has no macOS build of `btop`, so macOS gets it from Homebrew and
   Linux from mise (`os = ["linux"]`).
+- Homebrew also installs `node`, as a dependency of `bitwarden-cli` (`bw` is
+  a Node app). It isn't a second node to manage: shells find mise's node
+  first, and `bw` can't move to mise because the vault CLI must work before
+  the first `./install`. If `brew leaves` ever lists `node`, it was installed
+  by hand at some point; `brew tab --no-installed-on-request node` marks it
+  as a dependency again, so `brew autoremove` drops it with `bw`.
 - Programs not started from an activated shell (GUI apps, agents, cron)
   don't see mise tools on `PATH`. Config that shells out to them uses the
   shims in `~/.local/share/mise/shims`, e.g. git's `delta` pager and `gh`
