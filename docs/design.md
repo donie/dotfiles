@@ -1,7 +1,7 @@
 # Dotfiles redesign
 
-Status: **in progress**. Phases 1–5 and 7 are done; phase 6 (Linux) is done
-for Debian, Arch is next (see [Migration plan](#migration-plan));
+Status: **in progress**. Phases 1–7 are done, including Linux
+(Debian, Ubuntu, Arch) in phase 6; CI (phase 8) is optional (see [Migration plan](#migration-plan));
 dotbot is gone and chezmoi manages everything. `AGENTS.md` describes the
 current state.
 
@@ -86,7 +86,7 @@ nvim/  mpv/  rex/  shell/kitty/  sublime/   # app-written dirs, linked whole
   .chezmoiscripts/
     run_onchange_before_05-homebrew.sh.tmpl          # brew bundle; reruns when a Brewfile changes
     run_onchange_after_15-mise-tools.sh.tmpl         # mise install; reruns when the mise config changes
-    run_onchange_before_10-packages-linux.sh.tmpl    # apt (pacman later), missing packages only
+    run_onchange_before_10-packages-linux.sh.tmpl    # apt or pacman, missing packages only; en_US.UTF-8
     run_once_before_11-mise-linux.sh.tmpl            # mise to ~/.local/bin via mise.run
     run_after_45-hostname.sh.tmpl                    # macOS machine names, from the init prompt
     run_onchange_after_50-macos-defaults.sh.tmpl     # macOS settings
@@ -99,7 +99,7 @@ packages/
   Brewfile.extras         # optional, never installed automatically
   apt.txt                 # every Linux role
   apt.dev.txt             # devbox: toolchain and build libraries
-  pacman.txt              # not yet
+  pacman.txt  pacman.dev.txt  # Arch twins of the apt lists
 ```
 
 `run_onchange_` scripts embed a hash of their inputs, for example
@@ -254,7 +254,13 @@ merging.
    symlink), with aliases maintained by hand next to the fish config (see
    open questions). `tmux.conf` lost its macOS-only `reattach-to-user-namespace`
    lines, and the Claude config uses `$HOME` instead of `/Users/donie`.
-   Next: Arch (`pacman.txt`, a pacman branch in the packages script).
+   *Arch done* on x86_64 (official Arch has no arm64): `pacman.txt` and
+   `pacman.dev.txt` mirror the apt lists, and the packages script picks
+   apt or pacman. Arch doesn't support partial upgrades (`pacman -Sy pkg`),
+   so when something is missing the script runs `pacman -Syu --needed`, a
+   full upgrade; when nothing is missing it does nothing. Both distros also
+   get the `en_US.UTF-8` locale generated, because macOS terminals and ssh
+   pass it along and shells warn when it's missing.
 7. **Retire the private submodule.** *Done.* Secrets moved to the password
    manager (D3), licensed fonts to cloud storage (D4) and package lists to
    `packages/`. The private repo is archived on GitHub, not deleted.
@@ -289,6 +295,11 @@ package lists and settings are committed.
   unpushed branch can't be cloned with chezmoi's built-in git client
   (`file://` needs `git`), so clone from GitHub, then unpack
   `git archive <branch>` over the source directory.
+  Rosetta has gaps: on Ubuntu 26.04 amd64 even `tar -xf` fails with
+  "Function not implemented", so test Ubuntu on arm64. And a shell started
+  by `orb` begins in the Mac's home directory, where mise sees the Mac's
+  mise config as a project config and warns that it's untrusted; `cd ~`
+  first.
 - macOS: a disposable macOS VM (Tart or UTM) to prove the bootstrap from a
   clean install.
 - Before merging any phase, run `chezmoi diff` on the reference machine and

@@ -30,7 +30,7 @@ Scripts in `home/.chezmoiscripts/` follow their name prefix:
 
 | Prefix | Ours | Runs |
 |---|---|---|
-| `run_onchange_` | Homebrew, apt (Linux), mise tools, fisher, agent skills, vim plugins, macOS settings | When the rendered script changes. Each embeds a checksum of its inputs (Brewfile, apt list, mise config, vimrc, …), so changing an input reruns it. |
+| `run_onchange_` | Homebrew, apt or pacman (Linux), mise tools, fisher, agent skills, vim plugins, macOS settings | When the rendered script changes. Each embeds a checksum of its inputs (Brewfile, apt/pacman list, mise config, vimrc, …), so changing an input reruns it. |
 | `run_once_` | dotbot link cleanup, mise install (Linux) | Once per machine |
 | `run_after_` | fonts, hostname, login shell | Every apply; they check first and exit when there's nothing to do |
 
@@ -41,7 +41,9 @@ A new machine runs everything once.
 
 - **Upgrades.** Missing packages get installed; installed ones are never
   upgraded. Run `brew upgrade` (or `brew cu` for casks) and `mise upgrade`;
-  on Linux, `sudo apt upgrade` and `mise self-update`.
+  on Linux, `sudo apt upgrade` or `sudo pacman -Syu`, and `mise self-update`.
+  Exception: on Arch, installing a missing package always runs a full
+  `pacman -Syu`, because Arch doesn't support partial upgrades.
   mise entries set to `latest` mean "newest at install time", so machines
   drift until each one upgrades; pin a version where it matters.
 - **Uninstalls.** Removing a line from a Brewfile or the mise config leaves the
@@ -50,7 +52,8 @@ A new machine runs everything once.
     (add `--force` to remove). It also lists App Store apps that are still
     installed but no longer in any Brewfile (e.g. apps removed from the
     store); skip `--force` if you want to keep those.
-  - apt: `sudo apt remove <package>` by hand; the list is short.
+  - apt or pacman: `sudo apt remove <package>` or `sudo pacman -Rs <package>`
+    by hand; the lists are short.
   - mise: `mise prune` removes versions no config uses.
 - **Removed configs.** See the table above.
 

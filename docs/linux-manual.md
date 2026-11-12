@@ -1,8 +1,7 @@
 # Linux setup
 
-Setting up a Debian or Ubuntu machine (roles `devbox` and `server`). Arch
-isn't supported yet (`design.md`, phase 6). For everyday use afterwards see
-`usage.md`.
+Setting up a Debian, Ubuntu or Arch machine (roles `devbox` and `server`).
+For everyday use afterwards see `usage.md`.
 
 ## Bootstrap
 
@@ -20,8 +19,12 @@ sh -c "$(curl -fsLS get.chezmoi.io)" -- -b ~/.local/bin \
 - Asks for the machine role: `devbox` or `server`. Non-interactive: add
   `--promptChoice "Machine role=server"`.
 - Then, in order:
-  1. Installs missing apt packages from `packages/apt.txt`, plus
-     `packages/apt.dev.txt` on the devbox. This asks for your sudo password.
+  1. Installs missing system packages from `packages/apt.txt` (Debian,
+     Ubuntu) or `packages/pacman.txt` (Arch), plus the matching `.dev.txt`
+     on the devbox, and generates the `en_US.UTF-8` locale. This asks for
+     your sudo password. On Arch, installing runs a full `pacman -Syu`
+     (Arch doesn't support partial upgrades), so the first apply also
+     upgrades the system.
   2. Installs mise to `~/.local/bin`.
   3. Links the configs: `~/.bashrc`, git, tmux, vim, nvim, the mise config,
      and the agent configs on the devbox.
@@ -30,7 +33,7 @@ sh -c "$(curl -fsLS get.chezmoi.io)" -- -b ~/.local/bin \
 Open a new shell afterwards: `~/.bashrc` activates mise, so the tools are on
 `PATH`.
 
-The devbox takes about 4 minutes, and a server about 1.
+The devbox takes about 4 minutes, and a server about 1, on either distro.
 
 ## After the bootstrap
 
@@ -53,11 +56,17 @@ The devbox takes about 4 minutes, and a server about 1.
   downloads do, and it picks the release asset for `uname -m`. x86_64 is the
   best-supported target. On arm64, a mise registry entry sometimes lacks the
   Linux build even when upstream ships one (it happened with `tlrc`); switch
-  that tool to the `github:` backend. Both architectures are tested
-  (see Testing in `design.md`).
+  that tool to the `github:` backend. Both architectures are tested on
+  Debian (see Testing in `design.md`). Arch is tested on x86_64 only:
+  official Arch Linux has no arm64 build (Arch Linux ARM is a separate
+  project).
 - **Clipboard in tmux.** Copying in copy mode (`y`) uses OSC 52, so the
   selection reaches the clipboard of the machine you're typing on, even over
   SSH. The local terminal must allow clipboard writes (Ghostty and kitty do by
   default).
-- **Login shell.** It stays bash: Debian's `~/.profile` sources `~/.bashrc`
-  for login shells.
+- **Login shell.** It stays bash. Login shells read `~/.bashrc` through
+  Debian's `~/.profile` or Arch's `~/.bash_profile`.
+- **Locale.** macOS terminals and ssh pass `LANG`/`LC_ALL=en_US.UTF-8` to
+  the server, and fresh Debian and Arch installs don't have that locale
+  generated, so every shell would start with `setlocale` warnings. The
+  packages script generates it.
