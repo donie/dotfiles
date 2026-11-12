@@ -1,6 +1,7 @@
 # Dotfiles redesign
 
-Status: **in progress**. Phases 1–5 and 7 are done, phase 4 on macOS only; phase 6 (Linux) is next (see [Migration plan](#migration-plan));
+Status: **in progress**. Phases 1–7 are done, including Linux
+(Debian, Ubuntu, Arch) in phase 6; CI (phase 8) is optional (see [Migration plan](#migration-plan));
 dotbot is gone and chezmoi manages everything. `AGENTS.md` describes the
 current state.
 
@@ -79,14 +80,14 @@ home/                     # chezmoi source state
     symlink_nvim.tmpl     # whole-directory links for app-written dirs
   dot_claude/  dot_codex/  dot_pi/
   dot_gitconfig  dot_tmux.conf  dot_vimrc
-  dot_bashrc.tmpl         # Linux
+  dot_bashrc              # Linux; plain file, so a symlink like the rest
   _runtime/bin/           # personal scripts
 nvim/  mpv/  rex/  shell/kitty/  sublime/   # app-written dirs, linked whole
   .chezmoiscripts/
     run_onchange_before_05-homebrew.sh.tmpl          # brew bundle; reruns when a Brewfile changes
     run_onchange_after_15-mise-tools.sh.tmpl         # mise install; reruns when the mise config changes
-    run_onchange_before_10-packages-linux.sh.tmpl    # apt or pacman, minimal
-    run_onchange_after_20-mise.sh.tmpl               # mise install
+    run_onchange_before_10-packages-linux.sh.tmpl    # apt or pacman, missing packages only; locales
+    run_once_before_11-mise-linux.sh.tmpl            # mise to ~/.local/bin via mise.run
     run_after_45-hostname.sh.tmpl                    # macOS machine names, from the init prompt
     run_onchange_after_50-macos-defaults.sh.tmpl     # macOS settings
     run_after_40-fonts.sh.tmpl                       # copy licensed fonts from cloud storage, if present
@@ -96,7 +97,10 @@ packages/
   Brewfile.personal       # mac-personal
   Brewfile.work           # mac-work
   Brewfile.extras         # optional, never installed automatically
-  apt.txt  pacman.txt
+  apt.txt                 # every Linux role
+  apt.dev.txt             # devbox: toolchain and build libraries
+  pacman.txt  pacman.dev.txt  # Arch twins of the apt lists
+  locales.txt             # Linux locales; the first is the system default
 ```
 
 `run_onchange_` scripts embed a hash of their inputs, for example
@@ -126,6 +130,11 @@ Homebrew Rust.
 
 Exceptions and gotchas:
 
+- mise's registry and upstream releases don't always cover every platform.
+  `tokei` has shipped no binaries since v13, so mise builds it with cargo,
+  which is why it's in the dev set (with Rust) and not in core. The aqua
+  entry for `tlrc` lacks linux-arm64, which upstream ships, so it uses the
+  `github:` backend.
 - mise has no macOS build of `btop`, so macOS gets it from Homebrew and
   Linux from mise (`os = ["linux"]`).
 - Programs not started from an activated shell (GUI apps, agents, cron)
@@ -207,9 +216,11 @@ macOS:
 5. Work through `docs/macos-manual.md`.
 6. Optionally, `gh auth login`. This is only needed to push.
 
-Linux: same as macOS, using `sh -c "$(curl -fsLS get.chezmoi.io)" -- init
---apply <github-user>`. Steps 1–3 are skipped on `server` and `devbox`
-unless a secret is needed there.
+Linux (`docs/linux-manual.md`):
+`sh -c "$(curl -fsLS get.chezmoi.io)" -- -b ~/.local/bin init --apply --source ~/dotfiles <github-user>`.
+No git is needed: chezmoi falls back to its built-in git client, then the
+apt script installs git. Only `curl` and `sudo` are assumed. Steps 1–3 are
+skipped on `server` and `devbox` unless a secret is needed there.
 
 ## Migration plan
 
@@ -237,9 +248,23 @@ merging.
    Remove version-manager setup from the shells and hardcoded Homebrew
    paths.
 5. **macOS.** Settings script and the manual checklist. *Done.*
-6. **Linux.** Templated bashrc on the devbox, then server, then Arch.
-   First, confirm the pilot on Debian: `chezmoi init --apply` with role
-   `server` installs `.gitconfig` and skips fish and gallery-dl.
+6. **Linux.** Bashrc on the devbox, then server, then Arch.
+   *Done for Debian.* Both roles were verified on Debian 13 on x86_64 and
+   arm64, from a bare VM with no git: one apply, then a clean second apply
+   and an empty `chezmoi status`. The bashrc stays a plain file (a
+   symlink), with aliases maintained by hand next to the fish config (see
+   open questions). `tmux.conf` lost its macOS-only `reattach-to-user-namespace`
+   lines, and the Claude config uses `$HOME` instead of `/Users/donie`.
+   *Arch done* on x86_64 (official Arch has no arm64): `pacman.txt` and
+   `pacman.dev.txt` mirror the apt lists, and the packages script picks
+   apt or pacman. Arch doesn't support partial upgrades (`pacman -Sy pkg`),
+   so when something is missing the script runs `pacman -Syu --needed`, a
+   full upgrade; when nothing is missing it does nothing. Both distros also
+   get the locales in `packages/locales.txt` (en_US, zh_CN, ja_JP) generated,
+   and en_US becomes the system default unless one is already chosen.
+   Getting sudo onto a minimal install stays a documented manual step
+   (`docs/linux-manual.md`): chezmoi runs unprivileged and can't grant
+   itself root.
 7. **Retire the private submodule.** *Done.* Secrets moved to the password
    manager (D3), licensed fonts to cloud storage (D4) and package lists to
    `packages/`. The private repo is archived on GitHub, not deleted.
@@ -265,8 +290,20 @@ package lists and settings are committed.
 
 ## Testing
 
-- Linux: disposable VMs or containers (OrbStack, Docker) for Debian and
-  Arch.
+- Linux: disposable OrbStack VMs for Debian and Arch. Servers and the devbox
+  are x86_64, so test with `orb create --arch amd64 debian:trixie <name>`
+  (it runs under Rosetta), plus a native arm64 VM, which is where missing
+  release assets show up. OrbStack VMs aren't quite a real machine: they
+  share your user name and passwordless sudo, mount `/Users`, and put a
+  `pbcopy` bridge on `PATH` (so tmux binds `y` to `pbcopy` there). An
+  unpushed branch can't be cloned with chezmoi's built-in git client
+  (`file://` needs `git`), so clone from GitHub, then unpack
+  `git archive <branch>` over the source directory.
+  Rosetta has gaps: on Ubuntu 26.04 amd64 even `tar -xf` fails with
+  "Function not implemented", so test Ubuntu on arm64. And a shell started
+  by `orb` begins in the Mac's home directory, where mise sees the Mac's
+  mise config as a project config and warns that it's untrusted; `cd ~`
+  first.
 - macOS: a disposable macOS VM (Tart or UTM) to prove the bootstrap from a
   clean install.
 - Before merging any phase, run `chezmoi diff` on the reference machine and
@@ -278,4 +315,5 @@ package lists and settings are committed.
   mechanical.
 - Should alias and environment definitions be generated for both fish and
   bash from `.chezmoidata`, or kept as two hand-maintained files?
-- Do agent configs belong on the `server` role?
+- Do agent configs belong on the `server` role? For now they're excluded
+  in `.chezmoiignore`.

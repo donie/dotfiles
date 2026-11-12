@@ -1,6 +1,11 @@
 # Target paths (relative to ~) that chezmoi must not manage on this machine.
 # Templated by OS and role; see docs/design.md#machine-roles.
 
+{{ if eq .chezmoi.os "darwin" }}
+# Linux only: macOS uses fish.
+.bashrc
+{{ end }}
+
 {{ if ne .chezmoi.os "darwin" }}
 # macOS only: fish (Linux uses bash), desktop apps and personal scripts.
 .config/fish
@@ -20,8 +25,10 @@ _runtime
 {{ end }}
 
 {{ if ne .role "mac-personal" }}
-# Personal media tooling; its config pulls secrets from the password manager.
+# Personal media tooling; gallery-dl's config pulls secrets from the password
+# manager, BBDown is installed by the personal mise set.
 .gallery-dl.conf
+.config/BBDown
 {{ end }}
 
 {{ if eq .role "server" }}

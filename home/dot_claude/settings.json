@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "sh '/Users/donie/skills/tldraw-offline/inject-server-context.sh' SubagentStart"
+            "command": "sh \"$HOME/skills/tldraw-offline/inject-server-context.sh\" SubagentStart"
           }
         ]
       }
@@ -14,7 +14,7 @@
   },
   "statusLine": {
     "type": "command",
-    "command": "bash /Users/donie/.claude/statusline-command.sh"
+    "command": "bash $HOME/.claude/statusline-command.sh"
   },
   "enabledPlugins": {
     "context7@claude-plugins-official": true,

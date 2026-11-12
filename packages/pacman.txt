@@ -1,0 +1,30 @@
+# Arch Linux packages for every Linux role, installed by
+# home/.chezmoiscripts/run_onchange_before_10-packages-linux.sh.tmpl.
+# The Arch twin of apt.txt: keep the two in step. Only what must be a system
+# package; portable CLI tools come from mise (home/dot_config/mise).
+
+# base
+bash-completion
+ca-certificates
+curl
+git
+git-lfs
+gnupg
+less
+openssh
+rsync
+tmux
+tree
+unzip
+vim
+wget
+xz
+
+# archives
+7zip
+
+# network
+iperf3
+mtr
+nmap
+prettyping

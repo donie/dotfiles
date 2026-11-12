@@ -13,6 +13,7 @@ maven = "latest"
 terraform = "latest"
 mkcert = "latest"
 golangci-lint = "latest"
+tokei = "latest"  # releases since v13 ship no binaries: built with cargo (rust above)
 codex = "latest"
 "go:golang.org/x/tools/gopls" = "latest"
 "pipx:git-filter-repo" = "latest"

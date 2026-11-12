@@ -1,0 +1,16 @@
+{{- if eq .chezmoi.os "linux" -}}
+#!/bin/sh
+# Install mise into ~/.local/bin (no sudo, any distro and CPU arch). It
+# updates itself afterwards with `mise self-update`. macOS gets mise from
+# Homebrew instead. Runs once per machine; the tools are installed by
+# run_onchange_after_15-mise-tools.
+set -eu
+if command -v mise >/dev/null 2>&1 || [ -x "$HOME/.local/bin/mise" ]; then
+    exit 0
+fi
+if ! command -v curl >/dev/null 2>&1; then
+    echo "curl is not installed; skipping mise (install curl, then rerun chezmoi apply)" >&2
+    exit 0
+fi
+curl -fsSL https://mise.run | MISE_QUIET=1 sh
+{{ end -}}

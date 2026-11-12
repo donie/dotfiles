@@ -1,7 +1,7 @@
 # Day-to-day use
 
 How to change things on one machine and bring them to the others. For setup
-from scratch see `macos-manual.md`; for the reasoning behind the layout see
+from scratch see `macos-manual.md` or `linux-manual.md`; for the reasoning behind the layout see
 `design.md`.
 
 ## Making a change
@@ -30,8 +30,8 @@ Scripts in `home/.chezmoiscripts/` follow their name prefix:
 
 | Prefix | Ours | Runs |
 |---|---|---|
-| `run_onchange_` | Homebrew, mise, fisher, agent skills, vim plugins, macOS settings | When the rendered script changes. Each embeds a checksum of its inputs (Brewfile, mise config, vimrc, …), so changing an input reruns it. |
-| `run_once_` | dotbot link cleanup | Once per machine |
+| `run_onchange_` | Homebrew, apt or pacman (Linux), mise tools, fisher, agent skills, vim plugins, macOS settings | When the rendered script changes. Each embeds a checksum of its inputs (Brewfile, apt/pacman list, locales, mise config, vimrc, …), so changing an input reruns it. |
+| `run_once_` | dotbot link cleanup, mise install (Linux) | Once per machine |
 | `run_after_` | fonts, hostname, login shell | Every apply; they check first and exit when there's nothing to do |
 
 What each machine has run is recorded in `~/.config/chezmoi/chezmoistate.boltdb`.
@@ -40,7 +40,10 @@ A new machine runs everything once.
 ## What never happens automatically
 
 - **Upgrades.** Missing packages get installed; installed ones are never
-  upgraded. Run `brew upgrade` (or `brew cu` for casks) and `mise upgrade`.
+  upgraded. Run `brew upgrade` (or `brew cu` for casks) and `mise upgrade`;
+  on Linux, `sudo apt upgrade` or `sudo pacman -Syu`, and `mise self-update`.
+  Exception: on Arch, installing a missing package always runs a full
+  `pacman -Syu`, because Arch doesn't support partial upgrades.
   mise entries set to `latest` mean "newest at install time", so machines
   drift until each one upgrades; pin a version where it matters.
 - **Uninstalls.** Removing a line from a Brewfile or the mise config leaves the
@@ -49,6 +52,8 @@ A new machine runs everything once.
     (add `--force` to remove). It also lists App Store apps that are still
     installed but no longer in any Brewfile (e.g. apps removed from the
     store); skip `--force` if you want to keep those.
+  - apt or pacman: `sudo apt remove <package>` or `sudo pacman -Rs <package>`
+    by hand; the lists are short.
   - mise: `mise prune` removes versions no config uses.
 - **Removed configs.** See the table above.
 
@@ -90,6 +95,19 @@ A new machine runs everything once.
   or renamed it. `brew search --cask <name>` for a successor, or drop it.
 - **Fonts are skipped with "probably not downloaded from iCloud"**: mark the
   fonts folder Keep Downloaded (see `macos-manual.md`) and rerun `./install`.
+- **A mise tool fails on Linux with "unsupported env: linux/arm64"** (or
+  amd64): the tool's registry entry doesn't list a build for that platform,
+  even if upstream ships one. Check the release assets
+  (`gh release view --repo <owner>/<repo>`); if the build is there, use the
+  `github:<owner>/<repo>` backend, which reads the release directly. If
+  there's no build and mise falls back to `cargo install` ("cargo may be
+  required"), the tool belongs in the dev set, which has Rust (`tokei` is
+  there for this reason).
+- **apt hangs during `./install`**: a package is asking a configuration
+  question. The apt script runs apt-get with `DEBIAN_FRONTEND=noninteractive`
+  through `sudo env`, because sudo drops it from the environment otherwise.
+  If it happens anyway, answer in another terminal or kill the `dialog`
+  process, then run `sudo dpkg --configure -a`.
 - **A script failed midway**: fix the cause and rerun `./install`. Scripts are
   idempotent, and chezmoi only records a `run_onchange_` script as done when
   it succeeds, so a failed one runs again.

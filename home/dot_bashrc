@@ -1,5 +1,6 @@
- # ~/.bashrc — devbox (Debian), ported from shell/fish/config.fish
-# Install: scp ~/dotfiles/shell/bash/bashrc mars:~/.bashrc
+# ~/.bashrc for Linux (devbox and servers), ported from the fish config
+# (home/dot_config/private_fish/config.fish). Managed by chezmoi as a symlink
+# into the dotfiles repo; machine-specific additions go in ~/.bashrc.local.
 
 # Only for interactive shells.
 [[ $- == *i* ]] || return
@@ -61,11 +62,13 @@ fi
 command -v bat  >/dev/null && alias cat='bat --paging=never'
 command -v fd   >/dev/null && alias find=fd
 command -v tldr >/dev/null && alias help=tldr
-command -v htop >/dev/null && alias top=htop
+if command -v btop >/dev/null; then alias top=btop
+elif command -v htop >/dev/null; then alias top=htop; fi
 
 # fish abbreviations: real abbrs with ble.sh, plain aliases otherwise.
 if [[ ${BLE_VERSION-} ]]; then
   ble-sabbrev mtr='sudo mtr' ncdu='ncdu --color dark'
+  command -v prettyping >/dev/null && ble-sabbrev ping='prettyping --nolegend'
 else
   alias mtr='sudo mtr' ncdu='ncdu --color dark'
 fi
@@ -73,6 +76,7 @@ fi
 # ---------------------------------------------------------------------- tools
 command -v fzf    >/dev/null && eval "$(fzf --bash)"        # Ctrl-R, Ctrl-T, Alt-C
 command -v zoxide >/dev/null && eval "$(zoxide init bash)"  # z, zi
+command -v direnv >/dev/null && eval "$(direnv hook bash)"
 
 # --------------------------------------------------------------------- prompt
 # Fish default prompt + informative git status, Ayu Dark colors:
