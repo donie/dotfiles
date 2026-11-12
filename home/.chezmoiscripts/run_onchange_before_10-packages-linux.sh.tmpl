@@ -1,42 +1,82 @@
-{{- if and (eq .chezmoi.os "linux") (lookPath "apt-get") -}}
+{{- if eq .chezmoi.os "linux" -}}
 {{- $repo := .chezmoi.workingTree -}}
+{{- $pm := "" -}}
+{{- if lookPath "apt-get" }}{{ $pm = "apt" }}{{ else if lookPath "pacman" }}{{ $pm = "pacman" }}{{ end -}}
 #!/bin/sh
-# Install the apt packages in packages/apt.txt, plus apt.dev.txt on the
-# devbox. Only missing packages are installed, so sudo is needed only when
-# something is missing; nothing is ever upgraded or removed (`apt upgrade`
-# stays manual). Reruns whenever a list changes:
-# apt.txt sha256: {{ include (joinPath $repo "packages/apt.txt") | sha256sum }}
+# Install the system packages for this distro and generate the en_US.UTF-8
+# locale. Packages come from packages/apt.txt (Debian, Ubuntu) or
+# packages/pacman.txt (Arch), plus the matching .dev.txt on the devbox. Only
+# missing packages are installed, so sudo is needed only when something is
+# missing. Never removes anything. apt never upgrades; on Arch, installing
+# runs a full `pacman -Syu`, because partial upgrades are unsupported there.
+# Reruns whenever a list changes:
+{{- if $pm }}
+# {{ $pm }}.txt sha256: {{ include (joinPath $repo (printf "packages/%s.txt" $pm)) | sha256sum }}
 {{- if eq .role "devbox" }}
-# apt.dev.txt sha256: {{ include (joinPath $repo "packages/apt.dev.txt") | sha256sum }}
+# {{ $pm }}.dev.txt sha256: {{ include (joinPath $repo (printf "packages/%s.dev.txt" $pm)) | sha256sum }}
+{{- end }}
 {{- end }}
 set -eu
-
-wanted=$(sed 's/#.*//' <<'EOF' | tr -s ' \t\n' '\n' | sed '/^$/d'
-{{ include (joinPath $repo "packages/apt.txt") }}
-{{- if eq .role "devbox" }}
-{{ include (joinPath $repo "packages/apt.dev.txt") }}
-{{- end }}
-EOF
-)
-
-missing=""
-for pkg in $wanted; do
-    status=$(dpkg-query -W -f='${db:Status-Status}' "$pkg" 2>/dev/null || true)
-    [ "$status" = installed ] || missing="$missing $pkg"
-done
-[ -n "$missing" ] || exit 0
 
 if [ "$(id -u)" -eq 0 ]; then
     sudo=""
 elif command -v sudo >/dev/null 2>&1; then
     sudo="sudo"
 else
-    echo "apt packages missing and sudo is not available:$missing" >&2
-    exit 0
+    sudo="none"
 fi
 
-echo "Installing apt packages:$missing"
-$sudo apt-get update -qq
-# shellcheck disable=SC2086 # word splitting is intended
-$sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y -qq $missing
+{{ if $pm -}}
+wanted=$(sed 's/#.*//' <<'EOF' | tr -s ' \t\n' '\n' | sed '/^$/d'
+{{ include (joinPath $repo (printf "packages/%s.txt" $pm)) }}
+{{- if eq .role "devbox" }}
+{{ include (joinPath $repo (printf "packages/%s.dev.txt" $pm)) }}
+{{- end }}
+EOF
+)
+
+missing=""
+for pkg in $wanted; do
+{{- if eq $pm "apt" }}
+    status=$(dpkg-query -W -f='${db:Status-Status}' "$pkg" 2>/dev/null || true)
+    [ "$status" = installed ] || missing="$missing $pkg"
+{{- else }}
+    pacman -Qq "$pkg" >/dev/null 2>&1 || missing="$missing $pkg"
+{{- end }}
+done
+
+if [ -z "$missing" ]; then
+    :
+elif [ "$sudo" = none ]; then
+    echo "packages missing and sudo is not available:$missing" >&2
+else
+    echo "Installing packages:$missing"
+{{- if eq $pm "apt" }}
+    $sudo apt-get update -qq
+    # sudo drops DEBIAN_FRONTEND from the environment, hence `env`.
+    # shellcheck disable=SC2086 # word splitting is intended
+    $sudo env DEBIAN_FRONTEND=noninteractive apt-get install -y -qq $missing
+{{- else }}
+    # shellcheck disable=SC2086 # word splitting is intended
+    $sudo pacman -Syu --needed --noconfirm $missing
+{{- end }}
+fi
+{{- else }}
+echo "no supported package manager (apt-get, pacman); skipping system packages" >&2
+{{- end }}
+
+# en_US.UTF-8: macOS terminals and ssh pass LANG/LC_ALL=en_US.UTF-8 along, and
+# shells warn on every start when the locale isn't generated.
+if ! locale -a 2>/dev/null | grep -qix 'en_US.utf-\{0,1\}8' &&
+    [ -f /etc/locale.gen ] && command -v locale-gen >/dev/null 2>&1; then
+    if [ "$sudo" = none ]; then
+        echo "en_US.UTF-8 locale missing and sudo is not available" >&2
+    else
+        echo "Generating the en_US.UTF-8 locale"
+        $sudo sed -i 's/^# *\(en_US\.UTF-8 UTF-8\)/\1/' /etc/locale.gen
+        grep -q '^en_US\.UTF-8 UTF-8' /etc/locale.gen ||
+            echo 'en_US.UTF-8 UTF-8' | $sudo tee -a /etc/locale.gen >/dev/null
+        $sudo locale-gen >/dev/null
+    fi
+fi
 {{ end -}}

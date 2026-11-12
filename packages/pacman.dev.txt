@@ -1,0 +1,12 @@
+# Extra Arch packages for the devbox role, the twin of apt.dev.txt: toolchain
+# and the libraries mise builds runtimes (ruby) against. Most of the libraries
+# are already in a base install; they're listed so the intent is explicit.
+
+base-devel
+cmake
+pkgconf
+libffi
+libyaml
+openssl
+readline
+zlib
