@@ -3,13 +3,14 @@
 {{- $pm := "" -}}
 {{- if lookPath "apt-get" }}{{ $pm = "apt" }}{{ else if lookPath "pacman" }}{{ $pm = "pacman" }}{{ end -}}
 #!/bin/sh
-# Install the system packages for this distro and generate the en_US.UTF-8
-# locale. Packages come from packages/apt.txt (Debian, Ubuntu) or
+# Install the system packages for this distro and set up the locales in
+# packages/locales.txt. Packages come from packages/apt.txt (Debian, Ubuntu) or
 # packages/pacman.txt (Arch), plus the matching .dev.txt on the devbox. Only
 # missing packages are installed, so sudo is needed only when something is
 # missing. Never removes anything. apt never upgrades; on Arch, installing
 # runs a full `pacman -Syu`, because partial upgrades are unsupported there.
 # Reruns whenever a list changes:
+# locales.txt sha256: {{ include (joinPath $repo "packages/locales.txt") | sha256sum }}
 {{- if $pm }}
 # {{ $pm }}.txt sha256: {{ include (joinPath $repo (printf "packages/%s.txt" $pm)) | sha256sum }}
 {{- if eq .role "devbox" }}
@@ -17,6 +18,8 @@
 {{- end }}
 {{- end }}
 set -eu
+# Debian keeps locale-gen and update-locale in sbin, off a normal user's PATH.
+PATH=$PATH:/usr/sbin:/sbin
 
 if [ "$(id -u)" -eq 0 ]; then
     sudo=""
@@ -65,18 +68,65 @@ fi
 echo "no supported package manager (apt-get, pacman); skipping system packages" >&2
 {{- end }}
 
-# en_US.UTF-8: macOS terminals and ssh pass LANG/LC_ALL=en_US.UTF-8 along, and
-# shells warn on every start when the locale isn't generated.
-if ! locale -a 2>/dev/null | grep -qix 'en_US.utf-\{0,1\}8' &&
-    [ -f /etc/locale.gen ] && command -v locale-gen >/dev/null 2>&1; then
+# Locales from packages/locales.txt. macOS terminals and ssh pass
+# LANG/LC_ALL=en_US.UTF-8 along, and shells warn on every start when that
+# locale isn't generated. The first locale also becomes the system default
+# (for cron, services and the console) when none is set.
+locales=$(sed 's/#.*//' <<'EOF' | tr -s ' \t\n' '\n' | sed '/^$/d'
+{{ include (joinPath $repo "packages/locales.txt") }}
+EOF
+)
+
+# locale -a prints en_US.utf8 for en_US.UTF-8.
+normalize() { echo "$1" | tr 'A-Z' 'a-z' | sed 's/utf-8$/utf8/'; }
+have=$(locale -a 2>/dev/null | tr 'A-Z' 'a-z')
+gen=""
+for loc in $locales; do
+    echo "$have" | grep -qxF "$(normalize "$loc")" || gen="$gen $loc"
+done
+
+if [ -z "$gen" ]; then
+    :
+elif [ ! -f /etc/locale.gen ] || ! command -v locale-gen >/dev/null 2>&1; then
+    echo "locales missing, but there's no locale.gen/locale-gen:$gen" >&2
+elif [ "$sudo" = none ]; then
+    echo "locales missing and sudo is not available:$gen" >&2
+else
+    echo "Generating locales:$gen"
+    for loc in $gen; do
+        line="$loc ${loc#*.}" # "zh_CN.UTF-8 UTF-8": name, then charset
+        re=$(echo "$line" | sed 's/\./\\./g')
+        $sudo sed -i "s/^# *\($re\)/\1/" /etc/locale.gen
+        grep -q "^$re" /etc/locale.gen ||
+            echo "$line" | $sudo tee -a /etc/locale.gen >/dev/null
+    done
+    $sudo locale-gen >/dev/null
+fi
+
+# System default locale, only when the machine has none. C, C.UTF-8 and
+# POSIX count as none: they're fallbacks (systemd ships LANG=C.UTF-8), not
+# a choice.
+default=$(echo "$locales" | head -n 1)
+{{- if eq $pm "apt" }}
+conf=/etc/default/locale
+{{- else }}
+conf=/etc/locale.conf
+{{- end }}
+current=$(sed -n 's/^LANG="\{0,1\}\([^"]*\)"\{0,1\}$/\1/p' "$conf" 2>/dev/null | tail -n 1)
+case $current in
+    "" | C | C.UTF-8 | C.utf8 | POSIX) set_default=1 ;;
+    *) set_default="" ;;
+esac
+if [ -n "$default" ] && [ -n "$set_default" ]; then
     if [ "$sudo" = none ]; then
-        echo "en_US.UTF-8 locale missing and sudo is not available" >&2
+        echo "no system default locale and sudo is not available" >&2
     else
-        echo "Generating the en_US.UTF-8 locale"
-        $sudo sed -i 's/^# *\(en_US\.UTF-8 UTF-8\)/\1/' /etc/locale.gen
-        grep -q '^en_US\.UTF-8 UTF-8' /etc/locale.gen ||
-            echo 'en_US.UTF-8 UTF-8' | $sudo tee -a /etc/locale.gen >/dev/null
-        $sudo locale-gen >/dev/null
+        echo "Setting the system default locale: LANG=$default in $conf"
+        if [ -n "$current" ]; then
+            $sudo sed -i "s/^LANG=.*/LANG=$default/" "$conf"
+        else
+            echo "LANG=$default" | $sudo tee -a "$conf" >/dev/null
+        fi
     fi
 fi
 {{ end -}}

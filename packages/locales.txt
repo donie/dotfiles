@@ -1,0 +1,7 @@
+# Locales generated on every Linux machine by
+# home/.chezmoiscripts/run_onchange_before_10-packages-linux.sh.tmpl.
+# The first one also becomes the system default (LANG), unless the machine
+# already has a default.
+en_US.UTF-8
+zh_CN.UTF-8
+ja_JP.UTF-8
