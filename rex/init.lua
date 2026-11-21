@@ -1,5 +1,5 @@
 -- Rex configuration (https://www.superlogical.com/rex/docs/customize/config)
--- Linked to ~/.config/rex by dotbot. Apply changes with: rex config reload
+-- ~/.config/rex links to this directory (chezmoi, home/dot_config/symlink_rex.tmpl). Apply changes with: rex config reload
 --
 -- tmux-style bindings migrated from tmux/tmux.conf.
 -- tmux window == Rex tab; tmux session == Rex session.
