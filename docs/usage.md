@@ -121,6 +121,13 @@ A new machine runs everything once.
   registers it, then `git status` is clean again. If pi shows its changelog
   once after a pull, that's because the repo copy carries no version keys; pi
   writes them back and the filter keeps them out of Git.
+- **`git status` (or the fish prompt's `*1`) shows pi's `settings.json`
+  modified, but `git diff` is empty**: Git treats a file whose size differs
+  from the one recorded in the index as modified without running the clean
+  filter; `git diff` does run it and finds nothing. It happens after a pull,
+  or when pi rewrites a version key with a different length. Run
+  `git add home/dot_pi/agent/settings.json`: it stages nothing, only records
+  the new size.
 - **`mas` fails on Pages, Keynote or Numbers**: new Macs ship with them, but
   the preinstalled copy isn't always tied to the Apple ID, and mas can't
   install apps missing from the account's purchase history. They're left out
