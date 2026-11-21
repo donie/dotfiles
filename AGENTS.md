@@ -45,7 +45,7 @@ This repository is a **public** dotfiles repo managed by [chezmoi](https://www.c
 ├── shell/                  # kitty (linked from home/)
 ├── sublime/                # Sublime Text User package (linked from home/)
 ├── tmux/shared.sh          # Unreferenced helper, kept for now
-└── docs/                   # design.md, macos-manual.md, linux-manual.md, usage.md (updates, upkeep, troubleshooting)
+└── docs/                   # design.md, macos-manual.md, linux-manual.md, usage.md (updates, upkeep, troubleshooting), rex-settings.md
 ```
 
 ---

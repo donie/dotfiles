@@ -66,7 +66,7 @@ everything else.
 
 | App | Why it's manual | How |
 |---|---|---|
-| Rex (terminal) | Beta, no Homebrew cask yet | superlogical.com/rex/docs/installation |
+| Rex (terminal) | Beta, no Homebrew cask yet | superlogical.com/rex/docs/installation; then set its Settings window by hand from [`rex-settings.md`](rex-settings.md) |
 | Claude Code, Amp, Cursor Agent, Droid | Install and update themselves | Each vendor's install script; they land in `~/.local/bin` |
 | Orca, Open WebUI, krokiet | Only needed on some machines | As needed |
 | Anything in `packages/Brewfile.extras` | Optional per machine | `brew bundle --file=~/dotfiles/packages/Brewfile.extras`, or `brew install --cask <name>` |
