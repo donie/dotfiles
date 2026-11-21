@@ -9,7 +9,7 @@
 [[ -f ~/.local/share/blesh/ble.sh ]] && source ~/.local/share/blesh/ble.sh --noattach
 
 # ---------------------------------------------------------------- path / env
-for d in ~/.local/bin ~/go/bin ~/.cargo/bin; do
+for d in ~/.local/bin ~/go/bin ~/.cargo/bin ~/.bun/bin; do
   [[ -d $d && :$PATH: != *:$d:* ]] && PATH=$d:$PATH
 done
 export PATH

@@ -93,6 +93,7 @@ fish_add_path $HOME/go/bin  # `go install` target: Go default GOPATH (mise go.se
 fish_add_path ~/_runtime/bin
 fish_add_path ~/.local/bin
 fish_add_path ~/.cargo/bin
+fish_add_path ~/.bun/bin  # `bun add -g` target (pi is installed this way)
 
 ## set *utils PATH
 if type -q brew
