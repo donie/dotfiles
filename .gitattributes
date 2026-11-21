@@ -1,0 +1,4 @@
+# pi writes changelog bookkeeping into its settings file. The clean filter
+# keeps those keys out of Git; it's registered by
+# home/.chezmoiscripts/run_onchange_after_05-git-filters.sh.tmpl.
+home/dot_pi/agent/settings.json filter=pi-settings

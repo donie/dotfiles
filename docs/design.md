@@ -38,6 +38,7 @@ current state.
 | D6 | **fish** on macOS, **bash** on Linux; retire zsh | zsh plus a prompt framework is heavier than needed. bash is always present on servers. |
 | D7 | **Homebrew** for OS-native software, **mise** for runtimes and portable CLI tools | mise gives identical tool versions across macOS, Debian and Arch. Homebrew, apt and pacman keep what must be native: GUI apps, fonts, system libraries, build dependencies and login shells. A mise shim can't be listed in `/etc/shells`. |
 | D8 | Age encryption kept only as a fallback | Use it only for a secret that must reach a machine without vault access. Use post-quantum hybrid keys (`age-keygen -pq`) and a high-entropy passphrase if it's ever adopted. |
+| D9 | App-written state is **filtered out of Git** | Some apps store bookkeeping in their config file, e.g. pi's `lastChangelogVersion` and `extensionChangelogVersions`. A Git clean filter (`.gitattributes` plus `run_onchange_after_05-git-filters.sh.tmpl`, using `jq`) drops those keys when Git reads the file, so only real settings are committed and machines on different versions don't conflict. The app still sees and updates the keys in the linked file. |
 
 ## Machine roles
 

@@ -115,3 +115,9 @@ A new machine runs everything once.
   error): the Homebrew script only warns, so it counts as done and won't rerun
   until a Brewfile changes. Retry by hand:
   `cat ~/dotfiles/packages/Brewfile ~/dotfiles/packages/Brewfile.<personal|work> | brew bundle install --no-upgrade --file=-`
+- **`git status` shows pi's `settings.json` modified only by changelog
+  versions** (e.g. right after cloning or pulling): the `pi-settings` Git
+  filter isn't registered in this clone yet. Run `./install`; a chezmoi script
+  registers it, then `git status` is clean again. If pi shows its changelog
+  once after a pull, that's because the repo copy carries no version keys; pi
+  writes them back and the filter keeps them out of Git.

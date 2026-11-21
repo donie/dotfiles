@@ -1,0 +1,9 @@
+#!/bin/sh
+# Register the Git filters named in .gitattributes. Git doesn't share filter
+# definitions through the repo, so every clone needs them in .git/config.
+# jq comes from mise; the shim keeps it working outside an interactive shell.
+set -e
+repo={{ .chezmoi.workingTree | quote }}
+git -C "$repo" config filter.pi-settings.clean \
+    '"$HOME/.local/share/mise/shims/jq" --indent 2 "del(.lastChangelogVersion, .extensionChangelogVersions)"'
+git -C "$repo" config filter.pi-settings.smudge cat
