@@ -32,6 +32,7 @@
   },
   "effortLevel": "medium",
   "tui": "fullscreen",
+  "autoCompactEnabled": false,
   "voiceEnabled": true,
-  "autoCompactEnabled": false
+  "skipWorkflowUsageWarning": true
 }
