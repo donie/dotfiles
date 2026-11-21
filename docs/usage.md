@@ -121,3 +121,8 @@ A new machine runs everything once.
   registers it, then `git status` is clean again. If pi shows its changelog
   once after a pull, that's because the repo copy carries no version keys; pi
   writes them back and the filter keeps them out of Git.
+- **`mas` fails on Pages, Keynote or Numbers**: new Macs ship with them, but
+  the preinstalled copy isn't always tied to the Apple ID, and mas can't
+  install apps missing from the account's purchase history. They're left out
+  of the Brewfile for that reason; get them from the App Store by hand if a
+  Mac lacks them.

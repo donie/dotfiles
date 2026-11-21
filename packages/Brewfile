@@ -123,6 +123,8 @@ cask "font-sf-pro"
 cask "font-symbols-only-nerd-font"
 
 # Mac App Store (requires being signed in to the App Store)
+# Pages, Keynote and Numbers are left out: new Macs ship with them, and mas
+# fails on preinstalled copies that aren't tied to the Apple ID.
 mas "Bitwarden", id: 1352778147
 mas "The Unarchiver", id: 425424353
 mas "Wipr", id: 1662217862
@@ -135,8 +137,6 @@ mas "Things", id: 904280696
 mas "Bear", id: 1091189122
 mas "CotEditor", id: 1024640650
 mas "PDF Expert", id: 1055273043
-mas "Keynote", id: 409183694
-mas "Pages", id: 409201541
 mas "Windows App", id: 1295203466
 mas "Xcode", id: 497799835
 mas "TestFlight", id: 899247664
