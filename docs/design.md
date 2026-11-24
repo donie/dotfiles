@@ -43,7 +43,8 @@ current state.
 ## Machine roles
 
 The role is chosen once during `chezmoi init` (`promptChoiceOnce`) and stored
-in the local chezmoi config. The OS is detected from `.chezmoi.os` and
+in the local chezmoi config. Only the roles for the current OS are offered:
+`mac-personal` and `mac-work` on macOS, `devbox` and `server` on Linux. The OS is detected from `.chezmoi.os` and
 `.chezmoi.osRelease`.
 
 | Layer | `mac-personal` | `mac-work` | `devbox` | `server` |
@@ -224,7 +225,13 @@ macOS:
 6. Optionally, `gh auth login`. This is only needed to push.
 
 Linux (`docs/linux-manual.md`):
-`sh -c "$(curl -fsLS get.chezmoi.io)" -- -b ~/.local/bin init --apply --source ~/dotfiles <github-user>`.
+`sh -c "$(curl -fsLS https://raw.githubusercontent.com/<github-user>/dotfiles/main/bootstrap)"`.
+`bootstrap` wraps
+`sh -c "$(curl -fsLS get.chezmoi.io)" -- -b ~/.local/bin init --apply --source ~/dotfiles <github-user>`
+and first checks that an existing `~/dotfiles` is a chezmoi checkout:
+`init` reuses an existing source directory, and an old pre-chezmoi clone
+would make it finish silently. None of the repo's own templates run before
+the clone, so this check can't live in chezmoi.
 No git is needed: chezmoi falls back to its built-in git client, then the
 apt script installs git. Only `curl` and `sudo` are assumed. Steps 1–3 are
 skipped on `server` and `devbox` unless a secret is needed there.

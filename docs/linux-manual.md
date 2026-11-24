@@ -33,15 +33,19 @@ No git, Homebrew or vault login needed. As your normal user (not root), with
 `curl` and `sudo` available:
 
 ```sh
-sh -c "$(curl -fsLS get.chezmoi.io)" -- -b ~/.local/bin \
-  init --apply --source ~/dotfiles donie
+sh -c "$(curl -fsLS https://raw.githubusercontent.com/donie/dotfiles/main/bootstrap)"
 ```
 
-- Installs chezmoi to `~/.local/bin` and clones the repo to `~/dotfiles`
-  over HTTPS. chezmoi's built-in git client is used while `git` isn't
-  installed yet.
-- Asks for the machine role: `devbox` or `server`. Non-interactive: add
-  `--promptChoice "Machine role=server"`.
+- Runs `bootstrap` from the repo root. If `~/dotfiles` exists but isn't a
+  checkout of these chezmoi dotfiles (e.g. an old clone), it asks before
+  deleting it (see Troubleshooting).
+- Installs chezmoi to `~/.local/bin` and runs
+  `chezmoi init --apply --source ~/dotfiles donie`, which clones the repo
+  to `~/dotfiles` over HTTPS. chezmoi's built-in git client is used while
+  `git` isn't installed yet.
+- Asks for the machine role: `devbox` or `server` (Linux only offers
+  these two). Non-interactive: append
+  `-- --promptChoice "Machine role=server"` to the command.
 - Then, in order:
   1. Installs missing system packages from `packages/apt.txt` (Debian,
      Ubuntu) or `packages/pacman.txt` (Arch), plus the matching `.dev.txt`
@@ -73,6 +77,23 @@ The devbox takes about 4 minutes, and a server about 1, on either distro.
   `~/.local/share/blesh` if it's there.
 - [ ] Machine-specific shell settings go in `~/.bashrc.local`, which isn't
   tracked.
+
+## Troubleshooting
+
+- **`chezmoi init` finishes without asking for the role and changes
+  nothing.** `~/dotfiles` already existed, e.g. a clone from before the
+  chezmoi switch. `init` reuses an existing source directory without
+  cloning, and an old checkout has no `.chezmoiroot` or role prompt, so
+  there's nothing for it to do. `bootstrap` checks for this and offers to
+  delete the directory. By hand: move `~/dotfiles` aside, then run
+  `~/.local/bin/chezmoi init --apply --source ~/dotfiles donie`. Afterwards,
+  look for stray copies of repo-root files in `~` (`install`, `nvim`,
+  `docs`, `packages`) left by the silent run.
+- **The chezmoi installer stops after `installed …/chezmoi`.** The `init`
+  arguments didn't reach it, usually because a multi-line paste broke.
+  Run the `chezmoi init` command above on its own.
+- **`/usr/bin/sh: cannot execute binary file`.** The command was run as
+  `bash sh -c …`. Start it with `sh -c`.
 
 ## Notes
 

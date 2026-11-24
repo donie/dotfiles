@@ -1,0 +1,43 @@
+#!/bin/sh
+# First-time setup on Linux (see docs/linux-manual.md):
+#   sh -c "$(curl -fsLS https://raw.githubusercontent.com/donie/dotfiles/main/bootstrap)"
+# Arguments after `--` go to `chezmoi init`, e.g.
+#   sh -c "$(curl -fsLS …/bootstrap)" -- --promptChoice "Machine role=server"
+#
+# chezmoi init reuses an existing ~/dotfiles without cloning, so a leftover
+# checkout from before the chezmoi switch makes it finish silently without
+# asking anything. This checks for that first.
+set -eu
+
+DOTFILES="$HOME/dotfiles"
+BINDIR="$HOME/.local/bin"
+GITHUB_USER="donie"
+
+if [ -e "$DOTFILES" ] && [ ! -f "$DOTFILES/.chezmoiroot" ]; then
+  echo "$DOTFILES exists but isn't a checkout of these chezmoi dotfiles."
+  if [ -d "$DOTFILES/.git" ] && command -v git >/dev/null 2>&1; then
+    changes="$(git -C "$DOTFILES" status --porcelain 2>/dev/null | wc -l | tr -d ' ')"
+    echo "It's a git checkout with $changes uncommitted change(s)."
+  fi
+  printf 'Delete it and clone a fresh copy? [y/N] '
+  answer=""
+  read -r answer </dev/tty || true
+  case "$answer" in
+    y | Y | yes | YES) rm -rf "$DOTFILES" ;;
+    *)
+      echo "Stopped. Move $DOTFILES aside, then run this again." >&2
+      exit 1
+      ;;
+  esac
+fi
+
+if [ -x "$BINDIR/chezmoi" ]; then
+  CHEZMOI="$BINDIR/chezmoi"
+elif command -v chezmoi >/dev/null 2>&1; then
+  CHEZMOI="$(command -v chezmoi)"
+else
+  sh -c "$(curl -fsLS get.chezmoi.io)" -- -b "$BINDIR"
+  CHEZMOI="$BINDIR/chezmoi"
+fi
+
+exec "$CHEZMOI" init --apply --source "$DOTFILES" "$@" "$GITHUB_USER"

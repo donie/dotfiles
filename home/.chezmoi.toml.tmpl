@@ -1,5 +1,9 @@
 {{- /* Generates ~/.config/chezmoi/chezmoi.toml on `chezmoi init`. */ -}}
-{{- $roles := list "mac-personal" "mac-work" "devbox" "server" -}}
+{{- /* Only offer the roles that fit this OS. */ -}}
+{{- $roles := list "devbox" "server" -}}
+{{- if eq .chezmoi.os "darwin" -}}
+{{-   $roles = list "mac-personal" "mac-work" -}}
+{{- end -}}
 {{- $role := promptChoiceOnce . "role" "Machine role" $roles -}}
 {{- $hostname := "" -}}
 {{- if eq .chezmoi.os "darwin" -}}
