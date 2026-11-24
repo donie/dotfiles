@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Apply these dotfiles with chezmoi (see docs/design.md).
 # First run on a machine: asks for the machine role, then applies.
+# Later runs reuse the saved role.
 # Extra arguments go to `chezmoi apply`, e.g. `./install --dry-run --verbose`.
 set -euo pipefail
 
@@ -12,8 +13,9 @@ if ! command -v chezmoi >/dev/null 2>&1; then
   exit 1
 fi
 
-if [ ! -f "${XDG_CONFIG_HOME:-$HOME/.config}/chezmoi/chezmoi.toml" ]; then
-  chezmoi init --source "${BASEDIR}"
-fi
+# Regenerates ~/.config/chezmoi/chezmoi.toml from home/.chezmoi.toml.tmpl,
+# so template changes reach this machine. Prompts only on the first run;
+# saved answers are reused (promptChoiceOnce / promptStringOnce).
+chezmoi init --source "${BASEDIR}"
 
 chezmoi apply "$@"

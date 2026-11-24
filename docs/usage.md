@@ -11,8 +11,11 @@ from scratch see `macos-manual.md` or `linux-manual.md`; for the reasoning behin
      `~/.tmux.conf` edits the repo directly.
    - Templates (`*.tmpl`) are rendered copies: edit them in `home/` and run
      `./install` (or `chezmoi apply`).
-2. On every other machine: `git -C ~/dotfiles pull && ./install`, or
-   `chezmoi update`, which does both.
+2. On every other machine: `git -C ~/dotfiles pull && ~/dotfiles/install`.
+   `./install` runs `chezmoi init` (reusing the saved role, no prompt) and
+   then `chezmoi apply`. `chezmoi update` pulls and applies too, but skips
+   `init`: after a change to `home/.chezmoi.toml.tmpl` it warns "config file
+   template has changed" until you run `./install` or `chezmoi init`.
 
 ## What `./install` does on a machine that's already set up
 
